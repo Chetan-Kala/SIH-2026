@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String    @id @default(uuid())
+  phone      String    @unique
+  name       String
+  nameHi     String?
+  role       String    @default("CITIZEN")
+  districtId String
+  district   District  @relation(fields: [districtId], references: [id])
+  problems   Problem[]
+  createdAt  DateTime  @default(now())
+}
+
+model District {
+  id       String    @id @default(uuid())
+  name     String
+  nameHi   String
+  users    User[]
+  problems Problem[]
+}
+
+model Problem {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  status      String   @default("PENDING")
+  submitterId String
+  submitter   User     @relation(fields: [submitterId], references: [id])
+  districtId  String
+  district    District @relation(fields: [districtId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
