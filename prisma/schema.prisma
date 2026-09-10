@@ -35,6 +35,8 @@ model Problem {
   submitter   User     @relation(fields: [submitterId], references: [id])
   districtId  String
   district    District @relation(fields: [districtId], references: [id])
+  domain      String?
+  routedTo    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

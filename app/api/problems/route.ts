@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
+import { classify } from '@/lib/classifier'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
@@ -27,6 +28,8 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    const { domain, routedTo } = classify(title, description)
+
     const problem = await prisma.problem.create({
       data: {
         title,
@@ -34,6 +37,8 @@ export async function POST(req: NextRequest) {
         submitterId: user.id,
         districtId,
         status: 'PENDING',
+        domain,
+        routedTo,
       }
     })
 
