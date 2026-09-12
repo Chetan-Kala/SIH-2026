@@ -129,66 +129,169 @@ export async function translateToEnglish(
   }
 }
 
-/**
- * Translate text from English to a target language.
- * TODO: BHASHINI — replace stub with real ULCA pipeline call.
- */
 export async function translateFromEnglish(
   text: string,
-  _targetLang: BhashiniLang = 'hi',
+  targetLang: BhashiniLang = 'hi',
 ): Promise<TranslationResult> {
   if (!isBhashiniConfigured()) {
-    // TODO: BHASHINI — stub passthrough
     return { translatedText: text, isStub: true }
   }
 
-  // TODO: BHASHINI — same pattern as translateToEnglish, swap sourceLanguage/targetLanguage
-  return { translatedText: text, isStub: true }
+  try {
+    const configRes = await fetch('https://meity-auth.ulcacontrib.org/ulca/apis/v0/model/getModelsPipeline', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'ulcaApiKey': BHASHINI_API_KEY,
+        'userID': BHASHINI_USER_ID,
+      },
+      body: JSON.stringify({
+        pipelineTasks: [{ taskType: 'translation', config: { language: { sourceLanguage: 'en', targetLanguage: targetLang } } }],
+        pipelineRequestConfig: { pipelineId: BHASHINI_PIPELINE },
+      }),
+    })
+    const config = await configRes.json()
+    const callbackUrl   = config.pipelineInferenceAPIEndPoint?.callbackUrl
+    const inferenceKey  = config.pipelineInferenceAPIEndPoint?.inferenceApiKey?.value
+    const serviceId     = config.pipelineResponseConfig?.[0]?.config?.[0]?.serviceId
+
+    if (!callbackUrl || !inferenceKey || !serviceId) {
+      console.error('[Bhashini] Pipeline config incomplete:', config)
+      return { translatedText: text, isStub: true }
+    }
+
+    const inferRes = await fetch(callbackUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: inferenceKey },
+      body: JSON.stringify({
+        pipelineTasks: [{
+          taskType: 'translation',
+          config: { language: { sourceLanguage: 'en', targetLanguage: targetLang }, serviceId },
+        }],
+        inputData: { input: [{ source: text }] },
+      }),
+    })
+    const result = await inferRes.json()
+    const translated = result.pipelineResponse?.[0]?.output?.[0]?.target || text
+
+    return { translatedText: translated, isStub: false }
+  } catch (err) {
+    console.error('[Bhashini] translateFromEnglish error:', err)
+    return { translatedText: text, isStub: true }
+  }
 }
 
 // ─────────────────────────────────────────────────
 //  SPEECH TO TEXT  (Audio → Text)
 // ─────────────────────────────────────────────────
 
-/**
- * Convert spoken audio (WAV/MP3 blob) to text in the given language.
- * TODO: BHASHINI — replace stub with real ASR pipeline call.
- */
 export async function speechToText(
-  _audioBlob: Blob,
-  _lang: BhashiniLang = 'hi',
+  audioBlob: Blob,
+  lang: BhashiniLang = 'hi',
 ): Promise<SpeechToTextResult> {
   if (!isBhashiniConfigured()) {
-    // TODO: BHASHINI — stub: return empty transcript
     return { transcript: '', confidence: 0, isStub: true }
   }
 
-  // TODO: BHASHINI — Implement ASR pipeline:
-  // 1. Convert audioBlob to base64
-  // 2. GET pipeline config for taskType: 'asr', sourceLanguage: lang
-  // 3. POST to inference endpoint with base64 audio
-  // 4. Return transcript from pipelineResponse
-  return { transcript: '', confidence: 0, isStub: true }
+  try {
+    const arrayBuffer = await audioBlob.arrayBuffer()
+    const base64Audio = Buffer.from(arrayBuffer).toString('base64')
+
+    const configRes = await fetch('https://meity-auth.ulcacontrib.org/ulca/apis/v0/model/getModelsPipeline', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'ulcaApiKey': BHASHINI_API_KEY,
+        'userID': BHASHINI_USER_ID,
+      },
+      body: JSON.stringify({
+        pipelineTasks: [{ taskType: 'asr', config: { language: { sourceLanguage: lang } } }],
+        pipelineRequestConfig: { pipelineId: BHASHINI_PIPELINE },
+      }),
+    })
+    const config = await configRes.json()
+    const callbackUrl   = config.pipelineInferenceAPIEndPoint?.callbackUrl
+    const inferenceKey  = config.pipelineInferenceAPIEndPoint?.inferenceApiKey?.value
+    const serviceId     = config.pipelineResponseConfig?.[0]?.config?.[0]?.serviceId
+
+    if (!callbackUrl || !inferenceKey || !serviceId) {
+      console.error('[Bhashini] Pipeline config incomplete (ASR):', config)
+      return { transcript: '', confidence: 0, isStub: true }
+    }
+
+    const inferRes = await fetch(callbackUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: inferenceKey },
+      body: JSON.stringify({
+        pipelineTasks: [{
+          taskType: 'asr',
+          config: { language: { sourceLanguage: lang }, serviceId },
+        }],
+        inputData: { audio: [{ audioContent: base64Audio }] },
+      }),
+    })
+    const result = await inferRes.json()
+    const transcript = result.pipelineResponse?.[0]?.output?.[0]?.source || ''
+
+    return { transcript, confidence: 1, isStub: false }
+  } catch (err) {
+    console.error('[Bhashini] ASR error:', err)
+    return { transcript: '', confidence: 0, isStub: true }
+  }
 }
 
 // ─────────────────────────────────────────────────
 //  TEXT TO SPEECH  (Text → Audio)
 // ─────────────────────────────────────────────────
 
-/**
- * Convert text to spoken audio in the given language.
- * Returns base64-encoded WAV audio.
- * TODO: BHASHINI — replace stub with real TTS pipeline call.
- */
 export async function textToSpeech(
-  _text: string,
-  _lang: BhashiniLang = 'hi',
+  text: string,
+  lang: BhashiniLang = 'hi',
 ): Promise<TextToSpeechResult> {
   if (!isBhashiniConfigured()) {
-    // TODO: BHASHINI — stub: return empty audio
     return { audioBase64: '', isStub: true }
   }
 
-  // TODO: BHASHINI — Implement TTS pipeline
-  return { audioBase64: '', isStub: true }
+  try {
+    const configRes = await fetch('https://meity-auth.ulcacontrib.org/ulca/apis/v0/model/getModelsPipeline', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'ulcaApiKey': BHASHINI_API_KEY,
+        'userID': BHASHINI_USER_ID,
+      },
+      body: JSON.stringify({
+        pipelineTasks: [{ taskType: 'tts', config: { language: { sourceLanguage: lang } } }],
+        pipelineRequestConfig: { pipelineId: BHASHINI_PIPELINE },
+      }),
+    })
+    const config = await configRes.json()
+    const callbackUrl   = config.pipelineInferenceAPIEndPoint?.callbackUrl
+    const inferenceKey  = config.pipelineInferenceAPIEndPoint?.inferenceApiKey?.value
+    const serviceId     = config.pipelineResponseConfig?.[0]?.config?.[0]?.serviceId
+
+    if (!callbackUrl || !inferenceKey || !serviceId) {
+      console.error('[Bhashini] Pipeline config incomplete (TTS):', config)
+      return { audioBase64: '', isStub: true }
+    }
+
+    const inferRes = await fetch(callbackUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: inferenceKey },
+      body: JSON.stringify({
+        pipelineTasks: [{
+          taskType: 'tts',
+          config: { language: { sourceLanguage: lang }, serviceId },
+        }],
+        inputData: { input: [{ source: text }] },
+      }),
+    })
+    const result = await inferRes.json()
+    const audioBase64 = result.pipelineResponse?.[0]?.audio?.[0]?.audioContent || ''
+
+    return { audioBase64, isStub: false }
+  } catch (err) {
+    console.error('[Bhashini] TTS error:', err)
+    return { audioBase64: '', isStub: true }
+  }
 }
