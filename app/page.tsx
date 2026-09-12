@@ -62,7 +62,7 @@ export default function HomePage() {
   return (
     <div>
       {/* ─── HERO ─── */}
-      <section style={{
+      <section className="mobile-padding" style={{
         minHeight: 'calc(100vh - 80px)',
         display: 'flex',
         flexDirection: 'column',
@@ -125,7 +125,7 @@ export default function HomePage() {
 
       {/* ─── STATS STRIP ─── */}
       <section style={{ borderBottom: '1px solid var(--border)' }}>
-        <div style={{
+        <div className="mobile-grid-1" style={{
           maxWidth: '1100px', margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -149,9 +149,9 @@ export default function HomePage() {
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section style={{ padding: '6rem 2rem', borderBottom: '1px solid var(--border)' }}>
+      <section className="mobile-padding" style={{ padding: '6rem 2rem', borderBottom: '1px solid var(--border)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '2rem' }}>
+          <div className="stack-on-mobile mobile-gap-sm" style={{ marginBottom: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '2rem' }}>
             <div>
               <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--accent-sage)', marginBottom: '1rem' }}>प्रक्रिया</div>
               <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)' }}>यह कैसे काम करता है</h2>
@@ -161,7 +161,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div style={{
+          <div className="mobile-grid-1" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
             gap: '0',
@@ -191,8 +191,8 @@ export default function HomePage() {
       </section>
 
       {/* ─── STAKEHOLDERS ─── */}
-      <section style={{ padding: '6rem 2rem', borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4rem' }}>
+      <section className="mobile-padding" style={{ padding: '6rem 2rem', borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)' }}>
+        <div className="mobile-grid-1" style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4rem' }}>
           
           <div>
             <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '1rem' }}>पारिस्थितिकी तंत्र</div>
@@ -216,10 +216,10 @@ export default function HomePage() {
       </section>
 
       {/* ─── AI SECTION ─── */}
-      <section style={{ padding: '6rem 2rem', borderBottom: '1px solid var(--border)' }}>
+      <section className="mobile-padding" style={{ padding: '6rem 2rem', borderBottom: '1px solid var(--border)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '4rem' }}>
+          <div className="stack-on-mobile mobile-gap-sm" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '4rem' }}>
             <div style={{ flex: '1 1 400px' }}>
               <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--accent-sage)', marginBottom: '1rem' }}>प्रौद्योगिकी</div>
               <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: '1.5rem', lineHeight: 1.1 }}>
@@ -255,7 +255,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── CTA FOOTER ─── */}
-      <section style={{ padding: '8rem 2rem', textAlign: 'center', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+      <section className="mobile-padding" style={{ padding: '8rem 2rem', textAlign: 'center', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)', marginBottom: '1.5rem' }}>
             झारखंड की समस्याओं को<br/>

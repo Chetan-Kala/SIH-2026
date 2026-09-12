@@ -364,4 +364,25 @@ tbody td {
 @media (max-width: 768px) {
   .section { padding: 4rem 0; }
   .container { padding: 0 1.25rem; }
+  
+  .hide-on-mobile { display: none !important; }
+  .stack-on-mobile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .stack-on-mobile > * {
+    width: 100% !important;
+  }
+  .mobile-padding {
+    padding: 2rem 1.25rem !important;
+  }
+  .mobile-gap-sm {
+    gap: 1rem !important;
+  }
+  .mobile-grid-1 {
+    grid-template-columns: 1fr !important;
+  }
+  .tracker-line {
+    display: none !important;
+  }
 }

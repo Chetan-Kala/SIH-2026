@@ -130,8 +130,8 @@ export default function CitizenDashboard() {
                   <div style={{ padding: '2rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
                     
                     {/* Line behind steps */}
-                    <div style={{ position: 'absolute', top: '50%', left: '3rem', right: '3rem', height: '1px', background: 'var(--border)', zIndex: 0 }} />
-                    <div style={{ position: 'absolute', top: '50%', left: '3rem', width: `${((currentStep - 1) / 3) * 100}%`, height: '2px', background: 'var(--accent-ink)', zIndex: 0, transition: 'width 0.5s ease' }} />
+                    <div className="tracker-line" style={{ position: 'absolute', top: '50%', left: '3rem', right: '3rem', height: '1px', background: 'var(--border)', zIndex: 0 }} />
+                    <div className="tracker-line" style={{ position: 'absolute', top: '50%', left: '3rem', width: `${((currentStep - 1) / 3) * 100}%`, height: '2px', background: 'var(--accent-ink)', zIndex: 0, transition: 'width 0.5s ease' }} />
 
                     {[
                       { num: 1, label: 'दर्ज किया गया' },
