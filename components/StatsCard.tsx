@@ -17,6 +17,7 @@ const COLOR_MAP = {
 
 export default function StatsCard({ icon, value, label, sublabel, color = 'blue', trend }: StatsCardProps) {
   const c = COLOR_MAP[color]
+  return (
     <div className="card" style={{ border: `1px solid ${c.border}`, position: 'relative', overflow: 'hidden', background: c.bg }}>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
