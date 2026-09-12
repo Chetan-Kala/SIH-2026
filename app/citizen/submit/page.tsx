@@ -9,10 +9,7 @@ import VoiceInput from '@/components/VoiceInput'
 
 interface District { id: string; name: string; nameHi: string }
 
-const DOMAINS = [
-  'Roads & Infrastructure', 'Water Supply & Sanitation', 'Electricity',
-  'Waste Management', 'Public Health', 'Law & Order', 'Education', 'Transport', 'Agriculture', 'General',
-]
+
 
 const URGENCY_OPTIONS = [
   { value: 20, label: 'कम', emoji: '🟢', desc: 'कोई समय-सीमा नहीं' },

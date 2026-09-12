@@ -135,7 +135,7 @@ export async function translateToEnglish(
  */
 export async function translateFromEnglish(
   text: string,
-  targetLang: BhashiniLang = 'hi',
+  _targetLang: BhashiniLang = 'hi',
 ): Promise<TranslationResult> {
   if (!isBhashiniConfigured()) {
     // TODO: BHASHINI — stub passthrough
@@ -155,8 +155,8 @@ export async function translateFromEnglish(
  * TODO: BHASHINI — replace stub with real ASR pipeline call.
  */
 export async function speechToText(
-  audioBlob: Blob,
-  lang: BhashiniLang = 'hi',
+  _audioBlob: Blob,
+  _lang: BhashiniLang = 'hi',
 ): Promise<SpeechToTextResult> {
   if (!isBhashiniConfigured()) {
     // TODO: BHASHINI — stub: return empty transcript
@@ -181,8 +181,8 @@ export async function speechToText(
  * TODO: BHASHINI — replace stub with real TTS pipeline call.
  */
 export async function textToSpeech(
-  text: string,
-  lang: BhashiniLang = 'hi',
+  _text: string,
+  _lang: BhashiniLang = 'hi',
 ): Promise<TextToSpeechResult> {
   if (!isBhashiniConfigured()) {
     // TODO: BHASHINI — stub: return empty audio

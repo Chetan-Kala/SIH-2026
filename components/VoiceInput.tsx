@@ -9,7 +9,7 @@ interface VoiceInputProps {
   className?: string
 }
 
-export default function VoiceInput({ onTranscript, lang = 'hi', disabled = false }: VoiceInputProps) {
+export default function VoiceInput({ onTranscript: _onTranscript, lang: _lang = 'hi', disabled = false }: VoiceInputProps) {
   const [recording, setRecording] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
@@ -31,7 +31,7 @@ export default function VoiceInput({ onTranscript, lang = 'hi', disabled = false
       mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
       mr.onstop = async () => {
         setProcessing(true)
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        const _blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         stream.getTracks().forEach(t => t.stop())
         try {
           // TODO: BHASHINI — send blob to /api/bhashini/translate for ASR
