@@ -97,20 +97,15 @@ export default function RegisterPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         minHeight: '100%', padding: '3rem 1.5rem',
       }}>
-        {/* BG glow */}
-        <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-          <div style={{ position: 'absolute', top: '20%', right: '10%', width: '350px', height: '350px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(30,144,255,0.08) 0%, transparent 70%)' }} />
-        </div>
+        {/* Removed BG glow to fit editorial minimalism */}
 
         <div style={{ width: '100%', maxWidth: '560px', position: 'relative', zIndex: 1 }}>
           {/* Logo */}
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{
-              width: '56px', height: '56px', borderRadius: '16px',
-              background: 'linear-gradient(135deg, #1E90FF, #00D2FF)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '26px', margin: '0 auto 1rem',
-              boxShadow: '0 0 24px rgba(30,144,255,0.4)',
+              fontFamily: 'var(--font-serif)',
+              fontSize: '2.5rem', margin: '0 auto 1rem',
+              color: 'var(--accent-ink)',
             }}>
               🌉
             </div>
@@ -134,45 +129,46 @@ export default function RegisterPage() {
                   width: '100%',
                   padding: '1.1rem 1.25rem',
                   background: selectedRole?.value === role.value
-                    ? 'rgba(30,144,255,0.12)'
-                    : 'rgba(255,255,255,0.03)',
+                    ? 'var(--bg-tertiary)'
+                    : 'var(--bg-card)',
                   border: selectedRole?.value === role.value
-                    ? '1.5px solid rgba(30,144,255,0.5)'
-                    : '1.5px solid rgba(255,255,255,0.08)',
-                  borderRadius: '12px',
+                    ? '1.5px solid var(--accent-ink)'
+                    : '1.5px solid var(--border)',
+                  borderRadius: '0',
                   cursor: 'pointer',
                   textAlign: 'left',
                   transition: 'all 0.2s',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '1rem',
-                  color: '#fff',
+                  color: 'var(--text-primary)',
                 }}
               >
                 <div style={{
-                  width: '44px', height: '44px', borderRadius: '10px', flexShrink: 0,
-                  background: selectedRole?.value === role.value ? 'rgba(30,144,255,0.2)' : 'rgba(255,255,255,0.06)',
+                  width: '44px', height: '44px', borderRadius: '0', flexShrink: 0,
+                  background: selectedRole?.value === role.value ? 'var(--bg-primary)' : 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '20px',
                 }}>
                   {role.icon}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{role.label}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#607080' }}>{role.desc}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.2rem', fontFamily: 'var(--font-sans)', color: 'var(--accent-ink)' }}>{role.label}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{role.desc}</div>
                 </div>
                 {role.requiresPortalId && (
                   <span style={{
-                    fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem',
-                    background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.25)',
-                    borderRadius: '999px', color: '#F5A623', letterSpacing: '0.05em',
+                    fontSize: '0.65rem', fontWeight: 600, padding: '0.2rem 0.5rem',
+                    background: 'transparent', border: '1px solid var(--accent-terra)',
+                    borderRadius: '0', color: 'var(--accent-terra)', letterSpacing: '0.05em',
                     flexShrink: 0,
                   }}>
                     ID जरूरी
                   </span>
                 )}
                 {selectedRole?.value === role.value && (
-                  <span style={{ color: '#1E90FF', fontSize: '1.2rem', flexShrink: 0 }}>✓</span>
+                  <span style={{ color: 'var(--accent-ink)', fontSize: '1.2rem', flexShrink: 0 }}>✓</span>
                 )}
               </button>
             ))}
