@@ -1,26 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-const ROLE_HOME: Record<string, string> = {
-  REGIONAL_HEAD: '/regional',
-  ADMIN:         '/dashboard',
-  UNIVERSITY:    '/university',
-  INDUSTRY:      '/industry',
-  CITIZEN:       '/',
+const ROLE_DASHBOARD: Record<string, string> = {
+  REGIONAL_HEAD: '/regional/dashboard',
+  ADMIN:         '/admin/dashboard',
+  UNIVERSITY:    '/university/dashboard',
+  INDUSTRY:      '/industry/dashboard',
+  CITIZEN:       '/citizen/submit',
 }
 
-export default function LoginPage() {
-  const router       = useRouter()
-  const params       = useSearchParams()
-  const fromPath     = params.get('from')
-  const isUnauth     = params.get('error') === 'unauthorized'
+function LoginForm() {
+  const router   = useRouter()
+  const params   = useSearchParams()
+  const fromPath = params.get('from')
+  const isUnauth = params.get('error') === 'unauthorized'
 
-  const [form, setForm]         = useState({ phone: '', password: '' })
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState<string | null>(isUnauth ? 'इस पोर्टल तक पहुँचने का अधिकार नहीं है।' : null)
+  const [form, setForm]       = useState({ phone: '', password: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState<string | null>(isUnauth ? 'इस पेज तक पहुँचने का अधिकार नहीं है।' : null)
+  const [showPw, setShowPw]   = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,129 +41,176 @@ export default function LoginPage() {
       return
     }
 
-    // Redirect: to "from" path, or to role default
-    const dest = fromPath || ROLE_HOME[data.role] || '/'
+    // Save token for client-side Navbar
+    if (data.token) localStorage.setItem('token', data.token)
+
+    const dest = fromPath || ROLE_DASHBOARD[data.role] || '/'
     router.push(dest)
     router.refresh()
   }
 
   return (
     <div style={{
-      minHeight: 'calc(100vh - 56px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '24px 16px',
-      fontFamily: 'var(--font-noto-devanagari), sans-serif',
+      minHeight: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '3rem 1.5rem',
     }}>
-      <div style={{
-        width: '100%', maxWidth: '420px',
-        backgroundColor: '#fff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '12px',
-        padding: '36px 32px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-      }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+      {/* Background accent */}
+      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+        <div style={{
+          position: 'absolute', top: '20%', left: '10%',
+          width: '400px', height: '400px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(30,144,255,0.1) 0%, transparent 70%)',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '20%', right: '10%',
+          width: '300px', height: '300px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(245,166,35,0.06) 0%, transparent 70%)',
+        }} />
+      </div>
+
+      <div style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 1 }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{
-            width: '48px', height: '48px',
-            background: 'linear-gradient(135deg, #1a56db, #7c3aed)',
-            borderRadius: '12px',
+            width: '56px', height: '56px', borderRadius: '16px',
+            background: 'linear-gradient(135deg, #1E90FF, #00D2FF)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '24px', margin: '0 auto 12px',
-          }}>🏛</div>
-          <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px' }}>
+            fontSize: '26px', margin: '0 auto 1rem',
+            boxShadow: '0 0 24px rgba(30,144,255,0.4)',
+          }}>
+            🌉
+          </div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.4rem' }}>
             लॉग इन करें
           </h1>
-          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-            SIH 2026 — झारखंड नवाचार पोर्टल
+          <p style={{ color: '#607080', fontSize: '0.875rem' }}>
+            समाधान-सेतु · SIH 2026
           </p>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div style={{
-            backgroundColor: '#fef2f2', border: '1px solid #fecaca',
-            borderRadius: '8px', padding: '10px 14px', marginBottom: '20px',
-          }}>
-            <p style={{ color: '#b91c1c', margin: 0, fontSize: '13px' }}>✗ {error}</p>
-          </div>
-        )}
+        {/* Card */}
+        <div className="card" style={{ padding: '2rem' }}>
+          {/* Error */}
+          {error && (
+            <div className="alert alert-error" style={{ marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>मोबाइल नंबर</label>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-              placeholder="10 अंकों का मोबाइल नंबर"
-              required
-              pattern="[0-9]{10}"
-              style={inputStyle}
-            />
-          </div>
+          <form onSubmit={handleSubmit}>
+            {/* Phone */}
+            <div className="form-group">
+              <label className="form-label">मोबाइल नंबर</label>
+              <input
+                id="login-phone"
+                type="tel"
+                className="form-input"
+                value={form.phone}
+                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                placeholder="10 अंकों का मोबाइल नंबर"
+                required
+                pattern="[0-9]{10}"
+                maxLength={10}
+                autoComplete="tel"
+              />
+            </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={labelStyle}>पासवर्ड</label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              placeholder="••••••••"
-              required
-              style={inputStyle}
-            />
-          </div>
+            {/* Password */}
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <label className="form-label">पासवर्ड</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="login-password"
+                  type={showPw ? 'text' : 'password'}
+                  className="form-input"
+                  value={form.password}
+                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                  style={{ paddingRight: '3rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(v => !v)}
+                  style={{
+                    position: 'absolute', right: '0.875rem', top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none', border: 'none',
+                    color: '#607080', cursor: 'pointer', fontSize: '1.1rem', padding: 0,
+                  }}
+                  title={showPw ? 'छिपाएं' : 'दिखाएं'}
+                >
+                  {showPw ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%', padding: '12px',
-              background: loading
-                ? '#93c5fd'
-                : 'linear-gradient(135deg, #1a56db, #7c3aed)',
-              color: '#fff', border: 'none', borderRadius: '8px',
-              fontSize: '15px', fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontFamily: 'var(--font-noto-devanagari), sans-serif',
-            }}
-          >
-            {loading ? 'लॉग इन हो रहे हैं...' : 'लॉग इन करें'}
-          </button>
-        </form>
+            {/* Submit */}
+            <button
+              id="login-submit"
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+              style={{ width: '100%', padding: '0.875rem', fontSize: '1rem', borderRadius: '10px' }}
+            >
+              {loading ? (
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                  <span className="spinner" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
+                  लॉग इन हो रहे हैं...
+                </span>
+              ) : 'लॉग इन करें →'}
+            </button>
+          </form>
 
-        <p style={{ textAlign: 'center', fontSize: '13px', color: '#64748b', marginTop: '20px' }}>
-          नया खाता?{' '}
-          <Link href="/register" style={{ color: '#1a56db', fontWeight: '600', textDecoration: 'none' }}>
-            रजिस्टर करें
-          </Link>
-        </p>
+          {/* Divider */}
+          <div className="divider" style={{ margin: '1.5rem 0' }} />
 
-        {/* Test credentials hint */}
-        <div style={{
-          marginTop: '20px', padding: '12px',
-          backgroundColor: '#f8fafc', border: '1px solid #e2e8f0',
-          borderRadius: '8px', fontSize: '12px', color: '#64748b',
-        }}>
-          <strong style={{ color: '#475569' }}>Demo credentials:</strong><br />
-          🟣 Regional Head: <code>9000000002</code> / <code>regional123</code><br />
-          🔴 Admin: <code>9000000001</code> / <code>admin123</code>
+          <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#607080' }}>
+            नया खाता नहीं है?{' '}
+            <Link href="/register" style={{ color: '#1E90FF', fontWeight: 600, textDecoration: 'none' }}>
+              रजिस्टर करें
+            </Link>
+          </p>
+
+          {/* Demo credentials */}
+          <details style={{ marginTop: '1.25rem' }}>
+            <summary style={{
+              fontSize: '0.75rem', color: '#607080', cursor: 'pointer',
+              userSelect: 'none', letterSpacing: '0.04em',
+            }}>
+              🔑 Demo credentials (development)
+            </summary>
+            <div style={{
+              marginTop: '0.875rem',
+              padding: '0.875rem',
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '8px',
+              fontSize: '0.78rem',
+              color: '#607080',
+              lineHeight: 2,
+              fontFamily: 'var(--font-mono), monospace',
+            }}>
+              🟡 Regional Head: <strong style={{ color: '#F5A623' }}>9000000002</strong> / regional123<br />
+              🔴 Admin: <strong style={{ color: '#FF4757' }}>9000000001</strong> / admin123<br />
+              🟢 Citizen: <strong style={{ color: '#00C48C' }}>9999999999</strong> / citizen123
+            </div>
+          </details>
         </div>
       </div>
     </div>
   )
 }
 
-const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: '13px', fontWeight: '600',
-  color: '#374151', marginBottom: '6px',
-}
-const inputStyle: React.CSSProperties = {
-  display: 'block', width: '100%', padding: '10px 12px',
-  border: '1px solid #d1d5db', borderRadius: '8px',
-  fontSize: '14px', color: '#111', outline: 'none',
-  boxSizing: 'border-box', fontFamily: 'var(--font-noto-devanagari), sans-serif',
-  backgroundColor: '#fff',
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#607080' }}>लोड हो रहा है...</div>}>
+      <LoginForm />
+    </Suspense>
+  )
 }

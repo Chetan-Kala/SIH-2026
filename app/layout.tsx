@@ -5,31 +5,38 @@ import './globals.css'
 
 const notoSansDevanagari = Noto_Sans_Devanagari({
   subsets: ['devanagari'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   variable: '--font-noto-devanagari',
+  display: 'swap',
 })
 
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
   variable: '--font-inter',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'SIH 2026 — झारखंड नवाचार पोर्टल',
+  title: 'SamadhanSetu — समाधान-सेतु | SIH 2026',
   description:
-    'नागरिकों की समस्याओं को विश्वविद्यालयों और उद्योगों से जोड़ने का डिजिटल मंच',
+    'A Digital Platform to Crowdsource Societal Challenges and Facilitate Collaborative Problem Solving Through Universities & Industry Partnerships. Connecting Citizens, Universities & Industry — One Problem at a Time.',
+  keywords: 'SamadhanSetu, SIH 2026, Smart India Hackathon, Jharkhand, societal innovation, problem solving, universities, industry',
+  openGraph: {
+    title: 'SamadhanSetu — समाधान-सेतु',
+    description: 'Connecting Citizens, Universities & Industry — One Problem at a Time.',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="hi">
-      <body
-        className={`${notoSansDevanagari.variable} ${inter.variable} antialiased`}
-        style={{ margin: 0, backgroundColor: '#f8fafc', minHeight: '100vh' }}
-      >
+    <html lang="hi" suppressHydrationWarning>
+      <body className={`${notoSansDevanagari.variable} ${inter.variable}`}>
         <Navbar />
-        <main>{children}</main>
+        <main className="page-wrapper">
+          {children}
+        </main>
       </body>
     </html>
   )

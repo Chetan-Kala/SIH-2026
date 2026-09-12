@@ -1,58 +1,80 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-interface District {
-  id: string
-  name: string
-  nameHi: string
-}
+interface District { id: string; name: string; nameHi: string }
 
 const ROLE_OPTIONS = [
-  { value: 'CITIZEN',    label: 'नागरिक (Citizen)',          desc: 'समस्या दर्ज करें' },
-  { value: 'UNIVERSITY', label: 'विश्वविद्यालय (University)', desc: 'हैकाथॉन और समाधान' },
-  { value: 'INDUSTRY',   label: 'उद्योग (Industry)',          desc: 'मेंटरशिप और सहयोग' },
+  { value: 'CITIZEN',       label: 'नागरिक (Citizen)',              desc: 'समस्याएं दर्ज करें और समाधान देखें', icon: '👥', requiresPortalId: false, requiresOrg: false },
+  { value: 'UNIVERSITY',    label: 'विश्वविद्यालय (University / HEI)', desc: 'हैकाथॉन आयोजित करें और समस्याएं हल करें', icon: '🎓', requiresPortalId: false, requiresOrg: true },
+  { value: 'INDUSTRY',      label: 'उद्योग (Industry / MSME)',       desc: 'छात्र टीमों को सहयोग दें और समाधान को स्केल करें', icon: '🏭', requiresPortalId: false, requiresOrg: true },
+  { value: 'REGIONAL_HEAD', label: 'क्षेत्रीय अध्यक्ष / Ministry',    desc: 'पोर्टल ID आवश्यक — विभाग से प्राप्त करें', icon: '🏛️', requiresPortalId: true, requiresOrg: false },
 ]
+
+const ROLE_DASHBOARD: Record<string, string> = {
+  REGIONAL_HEAD: '/regional/dashboard',
+  ADMIN:         '/admin/dashboard',
+  UNIVERSITY:    '/university/dashboard',
+  INDUSTRY:      '/industry/dashboard',
+  CITIZEN:       '/citizen/submit',
+}
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [districts, setDistricts] = useState<District[]>([])
+
+  const [step, setStep]               = useState(1)
+  const [selectedRole, setSelectedRole] = useState<typeof ROLE_OPTIONS[0] | null>(null)
+  const [districts, setDistricts]     = useState<District[]>([])
+  const [loading, setLoading]         = useState(false)
+  const [error, setError]             = useState<string | null>(null)
+  const [showPw, setShowPw]           = useState(false)
+
   const [form, setForm] = useState({
-    name: '', phone: '', password: '', confirmPassword: '',
-    role: 'CITIZEN', orgName: '', districtId: '',
+    name: '',
+    nameHi: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    districtId: '',
+    orgName: '',
+    portalId: '',
   })
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/districts').then(r => r.json()).then(d => setDistricts(d.districts || []))
+    fetch('/api/districts')
+      .then(r => r.json())
+      .then(data => setDistricts(data.districts || []))
   }, [])
 
-  const change = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-  }
+  const update = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (form.password !== form.confirmPassword) {
-      setError('पासवर्ड मेल नहीं खाते')
+    if (!selectedRole) { setError('कृपया भूमिका चुनें'); return }
+    if (form.password !== form.confirmPassword) { setError('पासवर्ड मेल नहीं खाते'); return }
+    if (form.password.length < 8) { setError('पासवर्ड कम से कम 8 अक्षर का होना चाहिए'); return }
+    if (selectedRole.requiresPortalId && !form.portalId.trim()) {
+      setError('पोर्टल ID अनिवार्य है — अपने विभाग से प्राप्त करें')
       return
     }
+
     setLoading(true)
     setError(null)
 
-    const res  = await fetch('/api/auth/register', {
+    const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: form.name,
+        nameHi: form.nameHi || undefined,
         phone: form.phone,
         password: form.password,
-        role: form.role,
-        orgName: form.orgName || null,
-        districtId: form.districtId || null,
+        role: selectedRole.value,
+        orgName: form.orgName || undefined,
+        districtId: form.districtId || undefined,
+        portalId: form.portalId || undefined,
       }),
     })
     const data = await res.json()
@@ -63,107 +85,256 @@ export default function RegisterPage() {
       return
     }
 
-    router.push(data.role === 'CITIZEN' ? '/' : `/${data.role.toLowerCase()}`)
+    if (data.token) localStorage.setItem('token', data.token)
+    router.push(ROLE_DASHBOARD[data.role] || '/')
     router.refresh()
   }
 
-  const isOrgRole = form.role === 'UNIVERSITY' || form.role === 'INDUSTRY'
-
-  return (
-    <div style={{
-      minHeight: 'calc(100vh - 56px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '24px 16px',
-      fontFamily: 'var(--font-noto-devanagari), sans-serif',
-    }}>
+  // Step 1: role selection
+  if (step === 1) {
+    return (
       <div style={{
-        width: '100%', maxWidth: '480px',
-        backgroundColor: '#fff', border: '1px solid #e2e8f0',
-        borderRadius: '12px', padding: '36px 32px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100%', padding: '3rem 1.5rem',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{
-            width: '48px', height: '48px',
-            background: 'linear-gradient(135deg, #1a56db, #7c3aed)',
-            borderRadius: '12px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '24px', margin: '0 auto 12px',
-          }}>🏛</div>
-          <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px' }}>
-            नया खाता बनाएं
-          </h1>
-          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-            SIH 2026 — झारखंड नवाचार पोर्टल
-          </p>
+        {/* BG glow */}
+        <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+          <div style={{ position: 'absolute', top: '20%', right: '10%', width: '350px', height: '350px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(30,144,255,0.08) 0%, transparent 70%)' }} />
         </div>
 
-        {error && (
-          <div style={{
-            backgroundColor: '#fef2f2', border: '1px solid #fecaca',
-            borderRadius: '8px', padding: '10px 14px', marginBottom: '20px',
-          }}>
-            <p style={{ color: '#b91c1c', margin: 0, fontSize: '13px' }}>✗ {error}</p>
+        <div style={{ width: '100%', maxWidth: '560px', position: 'relative', zIndex: 1 }}>
+          {/* Logo */}
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{
+              width: '56px', height: '56px', borderRadius: '16px',
+              background: 'linear-gradient(135deg, #1E90FF, #00D2FF)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '26px', margin: '0 auto 1rem',
+              boxShadow: '0 0 24px rgba(30,144,255,0.4)',
+            }}>
+              🌉
+            </div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.4rem' }}>
+              रजिस्टर करें
+            </h1>
+            <p style={{ color: '#607080', fontSize: '0.875rem' }}>
+              आप इस मंच पर किस रूप में जुड़ना चाहते हैं?
+            </p>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit}>
-          {/* Role selector */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={labelStyle}>आप कौन हैं?</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {ROLE_OPTIONS.map(opt => (
-                <label key={opt.value} style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '10px 12px', border: `2px solid ${form.role === opt.value ? '#1a56db' : '#e2e8f0'}`,
-                  borderRadius: '8px', cursor: 'pointer',
-                  backgroundColor: form.role === opt.value ? '#eff6ff' : '#fff',
-                  transition: 'all 0.15s',
+          {/* Role cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            {ROLE_OPTIONS.map(role => (
+              <button
+                key={role.value}
+                id={`role-${role.value.toLowerCase()}`}
+                type="button"
+                onClick={() => setSelectedRole(role)}
+                style={{
+                  width: '100%',
+                  padding: '1.1rem 1.25rem',
+                  background: selectedRole?.value === role.value
+                    ? 'rgba(30,144,255,0.12)'
+                    : 'rgba(255,255,255,0.03)',
+                  border: selectedRole?.value === role.value
+                    ? '1.5px solid rgba(30,144,255,0.5)'
+                    : '1.5px solid rgba(255,255,255,0.08)',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  color: '#fff',
+                }}
+              >
+                <div style={{
+                  width: '44px', height: '44px', borderRadius: '10px', flexShrink: 0,
+                  background: selectedRole?.value === role.value ? 'rgba(30,144,255,0.2)' : 'rgba(255,255,255,0.06)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '20px',
                 }}>
-                  <input
-                    type="radio" name="role" value={opt.value}
-                    checked={form.role === opt.value}
-                    onChange={change}
-                    style={{ accentColor: '#1a56db' }}
-                  />
-                  <div>
-                    <div style={{ fontWeight: '600', fontSize: '13px', color: '#111' }}>{opt.label}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>{opt.desc}</div>
-                  </div>
-                </label>
-              ))}
+                  {role.icon}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{role.label}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#607080' }}>{role.desc}</div>
+                </div>
+                {role.requiresPortalId && (
+                  <span style={{
+                    fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem',
+                    background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.25)',
+                    borderRadius: '999px', color: '#F5A623', letterSpacing: '0.05em',
+                    flexShrink: 0,
+                  }}>
+                    ID जरूरी
+                  </span>
+                )}
+                {selectedRole?.value === role.value && (
+                  <span style={{ color: '#1E90FF', fontSize: '1.2rem', flexShrink: 0 }}>✓</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <button
+            id="register-next"
+            className="btn btn-primary"
+            disabled={!selectedRole}
+            onClick={() => setStep(2)}
+            style={{ width: '100%', padding: '0.875rem', fontSize: '1rem' }}
+          >
+            आगे बढ़ें →
+          </button>
+
+          <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#607080', marginTop: '1.25rem' }}>
+            पहले से खाता है?{' '}
+            <Link href="/login" style={{ color: '#1E90FF', fontWeight: 600, textDecoration: 'none' }}>
+              लॉग इन करें
+            </Link>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Step 2: fill details
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: '100%', padding: '3rem 1.5rem',
+    }}>
+      <div style={{ width: '100%', maxWidth: '480px' }}>
+        {/* Back + header */}
+        <div style={{ marginBottom: '1.75rem' }}>
+          <button
+            onClick={() => { setStep(1); setError(null) }}
+            style={{
+              background: 'none', border: 'none', color: '#607080',
+              cursor: 'pointer', fontSize: '0.875rem', padding: 0,
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              marginBottom: '1rem',
+            }}
+          >
+            ← वापस
+          </button>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+            padding: '0.875rem 1rem',
+            background: 'rgba(30,144,255,0.08)',
+            border: '1px solid rgba(30,144,255,0.2)',
+            borderRadius: '10px',
+            marginBottom: '1.5rem',
+          }}>
+            <span style={{ fontSize: '1.5rem' }}>{selectedRole?.icon}</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{selectedRole?.label}</div>
+              <div style={{ fontSize: '0.75rem', color: '#607080' }}>Step 2 of 2 — विवरण भरें</div>
             </div>
           </div>
+        </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>
-              {isOrgRole ? 'प्रतिनिधि का नाम' : 'पूरा नाम'} *
-            </label>
-            <input
-              name="name" type="text" value={form.name} onChange={change}
-              placeholder="अपना नाम लिखें" required style={inputStyle}
-            />
-          </div>
-
-          {isOrgRole && (
-            <div style={{ marginBottom: '16px' }}>
-              <label style={labelStyle}>
-                {form.role === 'UNIVERSITY' ? 'विश्वविद्यालय का नाम' : 'कंपनी/उद्योग का नाम'} *
-              </label>
-              <input
-                name="orgName" type="text" value={form.orgName} onChange={change}
-                placeholder={form.role === 'UNIVERSITY' ? 'जैसे: BIT Mesra' : 'जैसे: Tata Steel'}
-                required={isOrgRole} style={inputStyle}
-              />
+        <div className="card" style={{ padding: '2rem' }}>
+          {error && (
+            <div className="alert alert-error" style={{ marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+              <span>⚠️</span><span>{error}</span>
             </div>
           )}
 
-          {form.role === 'CITIZEN' && (
-            <div style={{ marginBottom: '16px' }}>
-              <label style={labelStyle}>जिला</label>
+          <form onSubmit={handleSubmit}>
+            {/* Portal ID (only for Regional Head) */}
+            {selectedRole?.requiresPortalId && (
+              <div className="form-group">
+                <label className="form-label" style={{ color: '#F5A623' }}>
+                  🔑 सरकारी पोर्टल ID <span style={{ color: '#FF4757' }}>*</span>
+                </label>
+                <input
+                  id="register-portal-id"
+                  type="text"
+                  className="form-input"
+                  value={form.portalId}
+                  onChange={e => update('portalId', e.target.value)}
+                  placeholder="जैसे: RH-JHKD-2026"
+                  required
+                  style={{ borderColor: 'rgba(245,166,35,0.3)' }}
+                />
+                <p style={{ fontSize: '0.72rem', color: '#607080', marginTop: '0.4rem' }}>
+                  यह ID आपके विभाग / मंत्रालय द्वारा जारी की जाती है
+                </p>
+              </div>
+            )}
+
+            {/* Name */}
+            <div className="form-group">
+              <label className="form-label">पूरा नाम (English) <span style={{ color: '#FF4757' }}>*</span></label>
+              <input
+                id="register-name"
+                type="text"
+                className="form-input"
+                value={form.name}
+                onChange={e => update('name', e.target.value)}
+                placeholder="Full name in English"
+                required
+              />
+            </div>
+
+            {/* Hindi name */}
+            <div className="form-group">
+              <label className="form-label">नाम हिंदी में <span style={{ color: '#607080' }}>(वैकल्पिक)</span></label>
+              <input
+                id="register-name-hi"
+                type="text"
+                className="form-input"
+                value={form.nameHi}
+                onChange={e => update('nameHi', e.target.value)}
+                placeholder="हिंदी में नाम"
+              />
+            </div>
+
+            {/* Org name for university/industry */}
+            {selectedRole?.requiresOrg && (
+              <div className="form-group">
+                <label className="form-label">
+                  {selectedRole.value === 'UNIVERSITY' ? 'विश्वविद्यालय का नाम' : 'संस्था / कंपनी का नाम'}{' '}
+                  <span style={{ color: '#FF4757' }}>*</span>
+                </label>
+                <input
+                  id="register-org"
+                  type="text"
+                  className="form-input"
+                  value={form.orgName}
+                  onChange={e => update('orgName', e.target.value)}
+                  placeholder={selectedRole.value === 'UNIVERSITY' ? 'जैसे: BIT Sindri' : 'जैसे: Tata Consultancy Services'}
+                  required
+                />
+              </div>
+            )}
+
+            {/* Phone */}
+            <div className="form-group">
+              <label className="form-label">मोबाइल नंबर <span style={{ color: '#FF4757' }}>*</span></label>
+              <input
+                id="register-phone"
+                type="tel"
+                className="form-input"
+                value={form.phone}
+                onChange={e => update('phone', e.target.value)}
+                placeholder="10 अंकों का मोबाइल नंबर"
+                required
+                pattern="[0-9]{10}"
+                maxLength={10}
+              />
+            </div>
+
+            {/* District */}
+            <div className="form-group">
+              <label className="form-label">जिला <span style={{ color: '#607080' }}>(वैकल्पिक)</span></label>
               <select
-                name="districtId" value={form.districtId} onChange={change}
-                style={inputStyle}
+                id="register-district"
+                className="form-select"
+                value={form.districtId}
+                onChange={e => update('districtId', e.target.value)}
               >
                 <option value="">— जिला चुनें —</option>
                 {districts.map(d => (
@@ -171,67 +342,72 @@ export default function RegisterPage() {
                 ))}
               </select>
             </div>
-          )}
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>मोबाइल नंबर *</label>
-            <input
-              name="phone" type="tel" value={form.phone} onChange={change}
-              placeholder="10 अंकों का मोबाइल नंबर"
-              required pattern="[0-9]{10}" style={inputStyle}
-            />
-          </div>
+            {/* Password */}
+            <div className="form-group">
+              <label className="form-label">पासवर्ड <span style={{ color: '#FF4757' }}>*</span></label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="register-password"
+                  type={showPw ? 'text' : 'password'}
+                  className="form-input"
+                  value={form.password}
+                  onChange={e => update('password', e.target.value)}
+                  placeholder="कम से कम 8 अक्षर"
+                  required
+                  minLength={8}
+                  style={{ paddingRight: '3rem' }}
+                />
+                <button type="button" onClick={() => setShowPw(v => !v)} style={{
+                  position: 'absolute', right: '0.875rem', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', color: '#607080', cursor: 'pointer', fontSize: '1.1rem', padding: 0,
+                }}>
+                  {showPw ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>पासवर्ड *</label>
-            <input
-              name="password" type="password" value={form.password} onChange={change}
-              placeholder="••••••••" required minLength={6} style={inputStyle}
-            />
-          </div>
+            {/* Confirm password */}
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <label className="form-label">पासवर्ड की पुष्टि <span style={{ color: '#FF4757' }}>*</span></label>
+              <input
+                id="register-confirm-password"
+                type="password"
+                className="form-input"
+                value={form.confirmPassword}
+                onChange={e => update('confirmPassword', e.target.value)}
+                placeholder="पासवर्ड दोबारा दर्ज करें"
+                required
+              />
+              {form.confirmPassword && form.password !== form.confirmPassword && (
+                <p className="form-error">⚠️ पासवर्ड मेल नहीं खाते</p>
+              )}
+            </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={labelStyle}>पासवर्ड दोबारा लिखें *</label>
-            <input
-              name="confirmPassword" type="password" value={form.confirmPassword} onChange={change}
-              placeholder="••••••••" required style={inputStyle}
-            />
-          </div>
+            <button
+              id="register-submit"
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+              style={{ width: '100%', padding: '0.875rem', fontSize: '1rem', borderRadius: '10px' }}
+            >
+              {loading ? (
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                  <span className="spinner" />
+                  रजिस्टर हो रहे हैं...
+                </span>
+              ) : 'खाता बनाएं →'}
+            </button>
+          </form>
+        </div>
 
-          <button
-            type="submit" disabled={loading}
-            style={{
-              width: '100%', padding: '12px',
-              background: loading ? '#93c5fd' : 'linear-gradient(135deg, #1a56db, #7c3aed)',
-              color: '#fff', border: 'none', borderRadius: '8px',
-              fontSize: '15px', fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontFamily: 'var(--font-noto-devanagari), sans-serif',
-            }}
-          >
-            {loading ? 'रजिस्टर हो रहे हैं...' : 'खाता बनाएं'}
-          </button>
-        </form>
-
-        <p style={{ textAlign: 'center', fontSize: '13px', color: '#64748b', marginTop: '20px' }}>
+        <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#607080', marginTop: '1.25rem' }}>
           पहले से खाता है?{' '}
-          <Link href="/login" style={{ color: '#1a56db', fontWeight: '600', textDecoration: 'none' }}>
+          <Link href="/login" style={{ color: '#1E90FF', fontWeight: 600, textDecoration: 'none' }}>
             लॉग इन करें
           </Link>
         </p>
       </div>
     </div>
   )
-}
-
-const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: '13px', fontWeight: '600',
-  color: '#374151', marginBottom: '6px',
-}
-const inputStyle: React.CSSProperties = {
-  display: 'block', width: '100%', padding: '10px 12px',
-  border: '1px solid #d1d5db', borderRadius: '8px',
-  fontSize: '14px', color: '#111', outline: 'none',
-  boxSizing: 'border-box', fontFamily: 'var(--font-noto-devanagari), sans-serif',
-  backgroundColor: '#fff',
 }

@@ -6,6 +6,11 @@ datasource db {
   provider = "postgresql"
 }
 
+
+// ─────────────────────────────────────────────────────
+//  ENUMS
+// ─────────────────────────────────────────────────────
+
 enum Role {
   CITIZEN
   REGIONAL_HEAD
@@ -19,19 +24,55 @@ enum Phase {
   WINTER
 }
 
+enum ProblemStatus {
+  PENDING
+  VERIFIED
+  ROUTED
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+enum ProblemVisibility {
+  PENDING_REVIEW
+  VERIFIED
+  PUBLIC
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum HackathonStatus {
+  OPEN
+  SHORTLISTING
+  QUARTERFINAL
+  SEMIFINAL
+  FINALE
+  COMPLETED
+}
+
+// ─────────────────────────────────────────────────────
+//  MODELS
+// ─────────────────────────────────────────────────────
+
 model User {
-  id         String    @id @default(uuid())
-  phone      String    @unique
-  name       String
-  nameHi     String?
-  role       Role      @default(CITIZEN)
-  password   String?
-  districtId String?
-  district   District? @relation(fields: [districtId], references: [id])
-  problems   Problem[]
-  orgName    String?
-  points     Int       @default(0)
-  createdAt  DateTime  @default(now())
+  id            String    @id @default(uuid())
+  phone         String    @unique
+  name          String
+  nameHi        String?
+  role          Role      @default(CITIZEN)
+  password      String?
+  districtId    String?
+  district      District? @relation(fields: [districtId], references: [id])
+  orgName       String?
+  points        Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  problems      Problem[]
+  solutions     Solution[]
+  hackathons    Hackathon[] @relation("UniversityHackathons")
 }
 
 model District {
@@ -43,18 +84,62 @@ model District {
 }
 
 model Problem {
-  id            String   @id @default(uuid())
+  id            String            @id @default(uuid())
   title         String
-  description   String
-  status        String   @default("PENDING")
-  submitterId   String
-  submitter     User     @relation(fields: [submitterId], references: [id])
-  districtId    String
-  district      District @relation(fields: [districtId], references: [id])
+  description   String            @db.Text
+  titleHi       String?           // Hindi translation (Bhashini — filled when API key is set)
+  descriptionHi String?           @db.Text // Hindi translation (Bhashini)
+  aiSummary     String?           // Short AI-generated summary
+  urgencyScore  Int               @default(0) // 0-100
+  status        ProblemStatus     @default(PENDING)
+  visibility    ProblemVisibility @default(PENDING_REVIEW)
   domain        String?
   routedTo      String?
-  phase         Phase    @default(SUMMER)
-  visibility    String   @default("PENDING_REVIEW")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  mediaUrls     String[]          // Array of uploaded image/video URLs
+  phase         Phase             @default(SUMMER)
+  sourceLang    String            @default("en") // Language the citizen submitted in
+  submitterId   String
+  submitter     User              @relation(fields: [submitterId], references: [id])
+  districtId    String
+  district      District          @relation(fields: [districtId], references: [id])
+  hackathonId   String?
+  hackathon     Hackathon?        @relation(fields: [hackathonId], references: [id])
+  solutions     Solution[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model Hackathon {
+  id              String          @id @default(uuid())
+  title           String
+  description     String          @db.Text
+  status          HackathonStatus @default(OPEN)
+  phase           Phase           @default(SUMMER)
+  universityId    String
+  university      User            @relation("UniversityHackathons", fields: [universityId], references: [id])
+  industryOrgName String?         // Industry partner name
+  prizePool       String?
+  registrationDeadline DateTime?
+  startDate       DateTime?
+  endDate         DateTime?
+  problems        Problem[]
+  solutions       Solution[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Solution {
+  id           String     @id @default(uuid())
+  title        String
+  description  String     @db.Text
+  submitterId  String
+  submitter    User       @relation(fields: [submitterId], references: [id])
+  problemId    String?
+  problem      Problem?   @relation(fields: [problemId], references: [id])
+  hackathonId  String?
+  hackathon    Hackathon? @relation(fields: [hackathonId], references: [id])
+  isWinner     Boolean    @default(false)
+  mediaUrls    String[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
