@@ -161,8 +161,7 @@ export default function CitizenSubmitPage() {
 
   const STEPS = [
     { n: 1, label: 'समस्या विवरण', icon: '📝' },
-    { n: 2, label: 'तात्कालिकता', icon: '🔥' },
-    { n: 3, label: 'पुष्टि', icon: '✓' },
+    { n: 2, label: 'पुष्टि', icon: '✓' },
   ]
 
   return (
@@ -384,60 +383,8 @@ export default function CitizenSubmitPage() {
         </div>
       )}
 
-      {/* ── STEP 2: Urgency ── */}
+      {/* ── STEP 2: Confirm ── */}
       {step === 2 && (
-        <div className="card animate-fade-up" style={{ padding: '2rem' }}>
-          <h3 style={{ marginBottom: '0.5rem' }}>तात्कालिकता स्तर</h3>
-          <p style={{ color: '#607080', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-            यह समस्या कितनी जरूरी है?
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
-            {URGENCY_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                id={`urgency-${opt.label.toLowerCase()}`}
-                onClick={() => update('urgencyScore', opt.value)}
-                style={{
-                  padding: '1rem 1.25rem',
-                  borderRadius: '12px',
-                  border: form.urgencyScore === opt.value
-                    ? '1.5px solid rgba(30,144,255,0.5)'
-                    : '1.5px solid rgba(255,255,255,0.08)',
-                  background: form.urgencyScore === opt.value
-                    ? 'rgba(30,144,255,0.1)'
-                    : 'rgba(255,255,255,0.03)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.875rem',
-                  transition: 'all 0.2s',
-                  color: '#fff',
-                }}
-              >
-                <span style={{ fontSize: '1.5rem' }}>{opt.emoji}</span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.15rem' }}>{opt.label}</div>
-                  <div style={{ fontSize: '0.78rem', color: '#607080' }}>{opt.desc}</div>
-                </div>
-                {form.urgencyScore === opt.value && <span style={{ marginLeft: 'auto', color: '#1E90FF' }}>✓</span>}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button onClick={() => setStep(1)} className="btn btn-ghost" style={{ flex: 1 }}>← वापस</button>
-            <button onClick={() => setStep(3)} className="btn btn-primary" style={{ flex: 2, padding: '0.875rem' }}>
-              पुष्टि करें →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── STEP 3: Confirm ── */}
-      {step === 3 && (
         <div className="card animate-fade-up" style={{ padding: '2rem' }}>
           <h3 style={{ marginBottom: '1.5rem' }}>सबमिट करने से पहले जांचें</h3>
 
@@ -447,7 +394,6 @@ export default function CitizenSubmitPage() {
               { label: 'विवरण', value: form.description.slice(0, 120) + (form.description.length > 120 ? '…' : '') },
               { label: 'जिला', value: districts.find(d => d.id === form.districtId)?.nameHi || '-' },
               { label: 'भाषा', value: LANG_OPTIONS.find(l => l.code === form.sourceLang)?.label || form.sourceLang },
-              { label: 'तात्कालिकता', value: URGENCY_OPTIONS.find(o => o.value === form.urgencyScore)?.label || '-' },
               ...(livePreview ? [{ label: 'AI Domain Preview', value: livePreview.domain }] : []),
             ].map(row => (
               <div key={row.label} style={{
@@ -482,7 +428,7 @@ export default function CitizenSubmitPage() {
           )}
 
           <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button onClick={() => setStep(2)} className="btn btn-ghost" style={{ flex: 1 }}>← वापस</button>
+            <button onClick={() => setStep(1)} className="btn btn-ghost" style={{ flex: 1 }}>← वापस</button>
             <button
               id="submit-problem-btn"
               onClick={handleSubmit}
