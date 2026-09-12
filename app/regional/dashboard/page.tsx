@@ -117,9 +117,9 @@ export default function RegionalDashboard() {
   }
 
   const TABS = [
-    { key: 'PENDING_REVIEW' as const, label: 'समीक्षा में', count: stats.pending, color: '#F5A623' },
-    { key: 'VERIFIED' as const,       label: 'सत्यापित',    count: stats.verified, color: '#1E90FF' },
-    { key: 'REJECTED' as const,       label: 'अस्वीकृत',    count: stats.rejected, color: '#FF4757' },
+    { key: 'PENDING_REVIEW' as const, label: 'समीक्षा में', count: stats.pending, color: 'var(--accent-ink)' },
+    { key: 'VERIFIED' as const,       label: 'सत्यापित',    count: stats.verified, color: 'var(--accent-sage)' },
+    { key: 'REJECTED' as const,       label: 'अस्वीकृत',    count: stats.rejected, color: 'var(--accent-red)' },
   ]
 
   return (
@@ -129,10 +129,10 @@ export default function RegionalDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <div className="badge badge-pending" style={{ marginBottom: '0.6rem' }}>क्षेत्रीय अध्यक्ष</div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.25rem' }}>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.25rem', color: 'var(--accent-ink)' }}>
               {user?.name ? `नमस्ते, ${user.name} 👋` : 'डैशबोर्ड'}
             </h1>
-            <p style={{ color: '#607080', fontSize: '0.875rem' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
               समस्याओं की समीक्षा करें, सत्यापित करें, और सही विभाग तक रूट करें
             </p>
           </div>
@@ -164,7 +164,7 @@ export default function RegionalDashboard() {
               background: 'none',
               border: 'none',
               borderBottom: tab === t.key ? `2px solid ${t.color}` : '2px solid transparent',
-              color: tab === t.key ? t.color : '#607080',
+              color: tab === t.key ? t.color : 'var(--text-secondary)',
               fontWeight: tab === t.key ? 700 : 400,
               fontSize: '0.875rem',
               cursor: 'pointer',
@@ -178,9 +178,10 @@ export default function RegionalDashboard() {
           >
             {t.label}
             <span style={{
-              padding: '0.1rem 0.45rem', borderRadius: '999px',
-              background: tab === t.key ? `${t.color}22` : 'rgba(255,255,255,0.06)',
-              color: tab === t.key ? t.color : '#607080',
+              padding: '0.1rem 0.45rem', borderRadius: '4px',
+              background: tab === t.key ? 'var(--bg-card)' : 'var(--bg-secondary)',
+              border: tab === t.key ? `1px solid ${t.color}` : '1px solid var(--border)',
+              color: tab === t.key ? t.color : 'var(--text-secondary)',
               fontSize: '0.7rem', fontWeight: 700,
             }}>
               {t.count}
@@ -197,9 +198,9 @@ export default function RegionalDashboard() {
           ))}
         </div>
       ) : problems.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#607080' }}>
+        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🎉</div>
-          <div style={{ fontWeight: 700, color: '#B0BEC5' }}>
+          <div style={{ fontWeight: 600, color: 'var(--text-muted)' }}>
             {tab === 'PENDING_REVIEW' ? 'समीक्षा की कोई समस्या नहीं' : 'कोई रिकॉर्ड नहीं'}
           </div>
         </div>
@@ -233,9 +234,9 @@ export default function RegionalDashboard() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: '1.5rem',
         }}>
-          <div className="card" style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}>
-            <h3 style={{ marginBottom: '0.5rem' }}>✅ सत्यापित करें और रूट करें</h3>
-            <p style={{ color: '#607080', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '440px', padding: '2rem', background: 'var(--bg-secondary)' }}>
+            <h3 style={{ marginBottom: '0.5rem', color: 'var(--accent-ink)' }}>✅ सत्यापित करें और रूट करें</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
               इस समस्या को किस विभाग / मंच पर भेजना है?
             </p>
             <div className="form-group" style={{ marginBottom: '1.5rem' }}>
