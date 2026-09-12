@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth'
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const phone = searchParams.get('phone')
-
-  if (!phone) {
-    return NextResponse.json({ error: 'phone query param required' }, { status: 400 })
+export async function GET() {
+  const session = await getSession()
+  
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const user = await prisma.user.findUnique({
-    where: { phone },
+    where: { id: session.id },
     include: {
       problems: {
         include: { district: true },

@@ -20,7 +20,7 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 const ROLE_DASHBOARD: Record<string, string> = {
-  CITIZEN: '/citizen/submit',
+  CITIZEN: '/citizen/dashboard',
   REGIONAL_HEAD: '/regional/dashboard',
   UNIVERSITY: '/university/dashboard',
   INDUSTRY: '/industry/dashboard',
