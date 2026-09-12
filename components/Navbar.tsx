@@ -37,7 +37,6 @@ export default function Navbar() {
   const profileRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Load user from localStorage token
     try {
       const token = localStorage.getItem('token')
       if (token) {
@@ -50,7 +49,7 @@ export default function Navbar() {
   }, [pathname])
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
+    const handleScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -73,9 +72,9 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { href: '/', label: 'होम', labelEn: 'Home' },
-    { href: '/hub', label: 'समस्या हब', labelEn: 'Problem Hub' },
-    ...(user ? [{ href: ROLE_DASHBOARD[user.role] || '/', label: 'डैशबोर्ड', labelEn: 'Dashboard' }] : []),
+    { href: '/', label: 'होम' },
+    { href: '/hub', label: 'समस्या हब' },
+    ...(user ? [{ href: ROLE_DASHBOARD[user.role] || '/', label: 'डैशबोर्ड' }] : []),
   ]
 
   return (
@@ -85,19 +84,15 @@ export default function Navbar() {
       left: 0,
       right: 0,
       zIndex: 100,
-      transition: 'all 0.3s ease',
-      background: scrolled
-        ? 'rgba(13, 27, 42, 0.92)'
-        : 'rgba(13, 27, 42, 0.6)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      borderBottom: `1px solid ${scrolled ? 'rgba(30,144,255,0.2)' : 'rgba(30,144,255,0.08)'}`,
+      background: 'var(--bg-primary)',
+      borderBottom: scrolled ? '1px solid var(--border-dark)' : '1px solid var(--border)',
+      transition: 'var(--transition)',
     }}>
       <div style={{
-        maxWidth: '1200px',
+        maxWidth: '1100px',
         margin: '0 auto',
-        padding: '0 1.5rem',
-        height: '72px',
+        padding: '0 2rem',
+        height: '80px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -105,49 +100,47 @@ export default function Navbar() {
       }}>
 
         {/* Logo */}
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
           <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #1E90FF, #00D2FF)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '18px',
-            boxShadow: '0 0 16px rgba(30,144,255,0.4)',
+            fontFamily: 'var(--font-serif)',
+            fontWeight: 500,
+            fontSize: '1.25rem',
+            color: 'var(--accent-ink)',
+            lineHeight: 1,
+            letterSpacing: '-0.02em'
           }}>
-            🌉
+            समाधान-सेतु
           </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#fff', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-              समाधान-सेतु
-            </div>
-            <div style={{ fontSize: '0.65rem', color: 'rgba(176,190,197,0.8)', letterSpacing: '0.06em', fontWeight: 500 }}>
-              SIH 2026 · SIH-26043
-            </div>
+          <div style={{
+            fontSize: '0.65rem',
+            color: 'var(--text-muted)',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            fontFamily: 'var(--font-sans)',
+            borderLeft: '1px solid var(--border)',
+            paddingLeft: '0.75rem',
+            lineHeight: 1.1
+          }}>
+            SIH 2026<br/>EDITION
           </div>
         </Link>
 
         {/* Desktop nav links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flex: 1, justifyContent: 'center' }}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', flex: 1, justifyContent: 'center' }}
              className="desktop-nav">
           {navLinks.map(link => (
             <Link
               key={link.href}
               href={link.href}
               style={{
-                padding: '0.45rem 0.875rem',
-                borderRadius: '8px',
                 textDecoration: 'none',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: pathname === link.href ? '#1E90FF' : '#B0BEC5',
-                background: pathname === link.href ? 'rgba(30,144,255,0.12)' : 'transparent',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem',
+                fontSize: '0.85rem',
+                fontWeight: pathname === link.href ? 600 : 400,
+                color: pathname === link.href ? 'var(--accent-ink)' : 'var(--text-secondary)',
+                fontFamily: 'var(--font-sans)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                transition: 'var(--transition)',
               }}
             >
               {link.label}
@@ -156,7 +149,7 @@ export default function Navbar() {
         </div>
 
         {/* Right side */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
           {user ? (
             <div ref={profileRef} style={{ position: 'relative' }}>
               <button
@@ -165,36 +158,37 @@ export default function Navbar() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.625rem',
-                  padding: '0.45rem 0.875rem 0.45rem 0.625rem',
-                  background: 'rgba(30,144,255,0.1)',
-                  border: '1px solid rgba(30,144,255,0.25)',
-                  borderRadius: '10px',
+                  gap: '0.75rem',
+                  padding: '0.5rem 1rem 0.5rem 0.5rem',
+                  background: 'transparent',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  color: '#fff',
-                  fontFamily: 'var(--font-inter), sans-serif',
+                  transition: 'var(--transition)',
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-sans)',
                 }}
               >
                 <div style={{
                   width: '28px',
                   height: '28px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #1E90FF, #00D2FF)',
+                  borderRadius: '2px',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-dark)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '13px',
-                  fontWeight: 700,
+                  fontSize: '12px',
+                  fontWeight: 600,
                   flexShrink: 0,
+                  color: 'var(--accent-ink)'
                 }}>
                   {user.name?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div style={{ textAlign: 'left', display: 'none' }} className="profile-name">
-                  <div style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.2 }}>{user.name}</div>
-                  <div style={{ fontSize: '0.65rem', color: '#B0BEC5' }}>{ROLE_LABELS[user.role] || user.role}</div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 500, lineHeight: 1.2 }}>{user.name}</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>{ROLE_LABELS[user.role] || user.role}</div>
                 </div>
-                <span style={{ fontSize: '0.65rem', color: '#B0BEC5', transition: 'transform 0.2s', display: 'inline-block', transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
               </button>
 
               {/* Profile dropdown */}
@@ -203,32 +197,29 @@ export default function Navbar() {
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
                   right: 0,
-                  width: '220px',
-                  background: 'rgba(26,43,60,0.97)',
-                  border: '1px solid rgba(30,144,255,0.2)',
-                  borderRadius: '14px',
-                  backdropFilter: 'blur(20px)',
-                  overflow: 'hidden',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(30,144,255,0.05)',
-                  animation: 'fade-up 0.15s ease both',
+                  width: '240px',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-dark)',
+                  borderRadius: '0',
+                  boxShadow: 'none',
                 }}>
                   {/* User info */}
-                  <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.2rem' }}>{user.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#B0BEC5', marginBottom: '0.5rem' }}>{ROLE_LABELS[user.role]}</div>
+                  <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem', fontFamily: 'var(--font-sans)', color: 'var(--accent-ink)' }}>{user.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ROLE_LABELS[user.role]}</div>
                     <div style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '0.3rem',
-                      padding: '0.2rem 0.6rem',
-                      background: 'rgba(245,166,35,0.12)',
-                      border: '1px solid rgba(245,166,35,0.25)',
-                      borderRadius: '999px',
+                      padding: '0.25rem 0.75rem',
+                      background: 'transparent',
+                      border: '1px solid var(--accent-sage)',
+                      borderRadius: 'var(--radius-sm)',
                       fontSize: '0.75rem',
-                      color: '#F5A623',
-                      fontWeight: 600,
+                      color: 'var(--accent-sage)',
+                      fontWeight: 500,
                     }}>
-                      ⭐ {user.points || 0} अंक
+                      {user.points || 0} अंक
                     </div>
                   </div>
 
@@ -238,63 +229,55 @@ export default function Navbar() {
                       href={ROLE_DASHBOARD[user.role] || '/'}
                       onClick={() => setProfileOpen(false)}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.625rem 0.75rem',
-                        borderRadius: '8px',
+                        display: 'block',
+                        padding: '0.75rem 1rem',
                         textDecoration: 'none',
-                        color: '#B0BEC5',
-                        fontSize: '0.875rem',
-                        transition: 'all 0.15s',
+                        color: 'var(--text-primary)',
+                        fontSize: '0.85rem',
+                        transition: 'background 0.2s',
+                        fontFamily: 'var(--font-sans)',
                       }}
                     >
-                      📊 डैशबोर्ड
+                      डैशबोर्ड
                     </Link>
                     {user.role === 'CITIZEN' && (
                       <Link
                         href="/citizen/submit"
                         onClick={() => setProfileOpen(false)}
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          padding: '0.625rem 0.75rem',
-                          borderRadius: '8px',
+                          display: 'block',
+                          padding: '0.75rem 1rem',
                           textDecoration: 'none',
-                          color: '#B0BEC5',
-                          fontSize: '0.875rem',
-                          transition: 'all 0.15s',
+                          color: 'var(--text-primary)',
+                          fontSize: '0.85rem',
+                          transition: 'background 0.2s',
+                          fontFamily: 'var(--font-sans)',
                         }}
                       >
-                        ✍️ समस्या दर्ज करें
+                        समस्या दर्ज करें
                       </Link>
                     )}
                   </div>
 
                   {/* Logout */}
-                  <div style={{ padding: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ padding: '0.5rem', borderTop: '1px solid var(--border)' }}>
                     <button
                       id="navbar-logout-btn"
                       onClick={handleLogout}
                       style={{
                         width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.625rem 0.75rem',
-                        borderRadius: '8px',
+                        display: 'block',
+                        padding: '0.75rem 1rem',
                         background: 'transparent',
                         border: 'none',
-                        color: '#FF4757',
-                        fontSize: '0.875rem',
+                        color: 'var(--accent-red)',
+                        fontSize: '0.85rem',
                         cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        transition: 'all 0.15s',
+                        fontFamily: 'var(--font-sans)',
                         textAlign: 'left',
                       }}
                     >
-                      🚪 लॉग आउट
+                      लॉग आउट
                     </button>
                   </div>
                 </div>
@@ -302,10 +285,10 @@ export default function Navbar() {
             </div>
           ) : (
             <>
-              <Link href="/login" className="btn btn-ghost btn-sm" style={{ fontSize: '0.85rem' }}>
+              <Link href="/login" className="btn btn-ghost btn-sm">
                 लॉग इन
               </Link>
-              <Link href="/register" className="btn btn-primary btn-sm" style={{ fontSize: '0.85rem' }}>
+              <Link href="/register" className="btn btn-primary btn-sm">
                 रजिस्टर
               </Link>
             </>
@@ -319,14 +302,14 @@ export default function Navbar() {
               display: 'none',
               width: '36px',
               height: '36px',
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '8px',
+              background: 'transparent',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-sm)',
               cursor: 'pointer',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '16px',
-              color: '#fff',
+              fontSize: '18px',
+              color: 'var(--accent-ink)',
             }}
             className="hamburger-btn"
           >
@@ -338,12 +321,13 @@ export default function Navbar() {
       {/* Mobile menu */}
       {menuOpen && (
         <div style={{
-          background: 'rgba(13,27,42,0.98)',
-          borderTop: '1px solid rgba(30,144,255,0.1)',
-          padding: '1rem 1.5rem',
+          background: 'var(--bg-primary)',
+          borderTop: '1px solid var(--border)',
+          borderBottom: '1px solid var(--border)',
+          padding: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.5rem',
+          gap: '1rem',
         }}>
           {navLinks.map(link => (
             <Link
@@ -351,26 +335,26 @@ export default function Navbar() {
               href={link.href}
               onClick={() => setMenuOpen(false)}
               style={{
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
                 textDecoration: 'none',
-                color: pathname === link.href ? '#1E90FF' : '#B0BEC5',
-                background: pathname === link.href ? 'rgba(30,144,255,0.1)' : 'transparent',
-                fontWeight: 500,
-                fontSize: '0.95rem',
+                color: pathname === link.href ? 'var(--accent-ink)' : 'var(--text-secondary)',
+                fontWeight: pathname === link.href ? 600 : 400,
+                fontSize: '1rem',
+                fontFamily: 'var(--font-sans)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
               }}
             >
               {link.label}
             </Link>
           ))}
           {!user && (
-            <>
-              <Link href="/login" onClick={() => setMenuOpen(false)} className="btn btn-ghost" style={{ marginTop: '0.5rem' }}>लॉग इन</Link>
-              <Link href="/register" onClick={() => setMenuOpen(false)} className="btn btn-primary">रजिस्टर</Link>
-            </>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+              <Link href="/login" onClick={() => setMenuOpen(false)} className="btn btn-outline" style={{ flex: 1 }}>लॉग इन</Link>
+              <Link href="/register" onClick={() => setMenuOpen(false)} className="btn btn-primary" style={{ flex: 1 }}>रजिस्टर</Link>
+            </div>
           )}
           {user && (
-            <button onClick={handleLogout} className="btn btn-ghost" style={{ color: '#FF4757' }}>🚪 लॉग आउट</button>
+            <button onClick={handleLogout} className="btn btn-ghost" style={{ color: 'var(--accent-red)', marginTop: '1rem', textAlign: 'left', padding: '0' }}>लॉग आउट</button>
           )}
         </div>
       )}

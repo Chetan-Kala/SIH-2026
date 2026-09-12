@@ -6,24 +6,23 @@ import Link from 'next/link'
 interface Stat {
   value: string
   label: string
-  icon: string
 }
 
 const FEATURES = [
-  { icon: '📥', title: 'समस्या दर्ज करें', titleEn: 'Collect', desc: 'नागरिक किसी भी भाषा में — टेक्स्ट, वॉइस, फोटो, वीडियो के ज़रिए स्थानीय समस्या दर्ज कर सकते हैं।', color: '#00D2FF' },
-  { icon: '🤖', title: 'AI वर्गीकरण', titleEn: 'Classify & Route', desc: 'भाषिणी AI स्वत: अनुवाद, सारांश, वर्गीकरण, और सही विभाग तक रूटिंग करता है।', color: '#1E90FF' },
-  { icon: '🌐', title: 'सार्वजनिक हब', titleEn: 'Publish', desc: 'सत्यापित समस्याएं राष्ट्रीय पब्लिक हब पर प्रकाशित होती हैं — सभी को दिखती हैं।', color: '#7C3AED' },
-  { icon: '🏆', title: 'हैकाथॉन', titleEn: 'Orchestrate', desc: 'विश्वविद्यालय संरचित हैकाथॉन आयोजित करते हैं — छात्र टीमें समाधान बनाती हैं।', color: '#F5A623' },
-  { icon: '🤝', title: 'उद्योग सहयोग', titleEn: 'Enforce Collaboration', desc: 'उद्योग अकेले नहीं बना सकते — उन्हें छात्र टीम के साथ मिलकर काम करना होगा।', color: '#00C48C' },
-  { icon: '⭐', title: 'पुरस्कार प्रणाली', titleEn: 'Reward', desc: 'सरकार समर्थित पॉइंट्स और लीडरबोर्ड सिस्टम — हर भागीदार को इनसेंटिव मिलता है।', color: '#FF6B6B' },
+  { title: 'समस्या दर्ज करें', titleEn: 'Collect', desc: 'नागरिक किसी भी भाषा में — टेक्स्ट, वॉइस, फोटो, वीडियो के ज़रिए स्थानीय समस्या दर्ज कर सकते हैं।' },
+  { title: 'AI वर्गीकरण', titleEn: 'Classify & Route', desc: 'भाषिणी AI स्वत: अनुवाद, सारांश, वर्गीकरण, और सही विभाग तक रूटिंग करता है।' },
+  { title: 'सार्वजनिक हब', titleEn: 'Publish', desc: 'सत्यापित समस्याएं राष्ट्रीय पब्लिक हब पर प्रकाशित होती हैं — सभी को दिखती हैं।' },
+  { title: 'हैकाथॉन', titleEn: 'Orchestrate', desc: 'विश्वविद्यालय संरचित हैकाथॉन आयोजित करते हैं — छात्र टीमें समाधान बनाती हैं।' },
+  { title: 'उद्योग सहयोग', titleEn: 'Enforce', desc: 'उद्योग अकेले नहीं बना सकते — उन्हें छात्र टीम के साथ मिलकर काम करना होगा।' },
+  { title: 'पुरस्कार प्रणाली', titleEn: 'Reward', desc: 'सरकार समर्थित पॉइंट्स और लीडरबोर्ड सिस्टम — हर भागीदार को इनसेंटिव मिलता है।' },
 ]
 
 const STAKEHOLDERS = [
-  { icon: '👥', role: 'नागरिक', desc: 'समस्याएं दर्ज करें', color: '#00D2FF' },
-  { icon: '🏛️', role: 'क्षेत्रीय अध्यक्ष', desc: 'सत्यापन करें', color: '#F5A623' },
-  { icon: '🎓', role: 'विश्वविद्यालय', desc: 'हैकाथॉन चलाएं', color: '#00C48C' },
-  { icon: '🏭', role: 'उद्योग', desc: 'समाधान में भागीदार बनें', color: '#FF8C42' },
-  { icon: '🏛️', role: 'सरकार', desc: 'निगरानी और पुरस्कार', color: '#1E90FF' },
+  { role: 'नागरिक', desc: 'समस्याएं दर्ज करें', category: 'Citizen' },
+  { role: 'क्षेत्रीय अध्यक्ष', desc: 'सत्यापन करें', category: 'Authority' },
+  { role: 'विश्वविद्यालय', desc: 'हैकाथॉन चलाएं', category: 'Academia' },
+  { role: 'उद्योग', desc: 'समाधान में भागीदार बनें', category: 'Corporate' },
+  { role: 'सरकार', desc: 'निगरानी और पुरस्कार', category: 'State' },
 ]
 
 function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: number }) {
@@ -53,366 +52,224 @@ function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: num
 }
 
 const STATS: (Stat & { numericValue: number })[] = [
-  { value: '24', numericValue: 24, label: 'जिले', icon: '📍' },
-  { value: '5', numericValue: 5,   label: 'भूमिकाएं', icon: '👤' },
-  { value: '8', numericValue: 8,   label: 'डोमेन', icon: '🏷️' },
-  { value: '2', numericValue: 2,   label: 'चरण (Summer/Winter)', icon: '🌐' },
+  { value: '24', numericValue: 24, label: 'जिले' },
+  { value: '5', numericValue: 5,   label: 'भूमिकाएं' },
+  { value: '8', numericValue: 8,   label: 'डोमेन' },
+  { value: '2', numericValue: 2,   label: 'चरण' },
 ]
 
 export default function HomePage() {
-  const [scrollY, setScrollY] = useState(0)
-
-  useEffect(() => {
-    const h = () => setScrollY(window.scrollY)
-    window.addEventListener('scroll', h, { passive: true })
-    return () => window.removeEventListener('scroll', h)
-  }, [])
-
-  const parallax = -scrollY * 0.25
-
   return (
     <div>
       {/* ─── HERO ─── */}
       <section style={{
-        minHeight: 'calc(100vh - 72px)',
+        minHeight: 'calc(100vh - 80px)',
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: 'column',
         justifyContent: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-        padding: '4rem 1.5rem',
+        padding: '6rem 2rem',
+        borderBottom: '1px solid var(--border)',
+        position: 'relative'
       }}>
-        {/* Animated background blobs */}
-        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '1fr', gap: '3rem' }}>
+          
           <div style={{
-            position: 'absolute', top: '10%', left: '5%',
-            width: '500px', height: '500px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(30,144,255,0.12) 0%, transparent 70%)',
-            transform: `translateY(${parallax * 0.5}px)`,
-            transition: 'transform 0.1s linear',
-          }} />
-          <div style={{
-            position: 'absolute', bottom: '10%', right: '5%',
-            width: '400px', height: '400px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(245,166,35,0.08) 0%, transparent 70%)',
-            transform: `translateY(${-parallax * 0.3}px)`,
-            transition: 'transform 0.1s linear',
-          }} />
-          <div style={{
-            position: 'absolute', top: '40%', right: '20%',
-            width: '300px', height: '300px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0,196,140,0.06) 0%, transparent 70%)',
-          }} />
-        </div>
-
-        <div style={{ maxWidth: '900px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-          {/* Badge */}
-          <div className="animate-fade-up" style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-            padding: '0.4rem 1rem',
-            background: 'rgba(30,144,255,0.1)',
-            border: '1px solid rgba(30,144,255,0.3)',
-            borderRadius: '999px',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            color: '#1E90FF',
-            marginBottom: '1.5rem',
-            letterSpacing: '0.05em',
+            fontFamily: 'var(--font-sans)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            color: 'var(--text-secondary)',
+            borderBottom: '1px solid var(--border)',
+            paddingBottom: '1rem',
+            display: 'inline-block',
+            maxWidth: 'max-content'
           }}>
-            🏆 Smart India Hackathon 2026 · SIH-26043
+            Smart India Hackathon 2026 / SIH-26043
           </div>
 
-          {/* Main heading */}
-          <h1 className="animate-fade-up" style={{
-            fontSize: 'clamp(2.5rem, 7vw, 5rem)',
-            fontWeight: 900,
-            lineHeight: 1.08,
-            marginBottom: '0.75rem',
+          <h1 style={{
+            fontSize: 'clamp(3rem, 8vw, 6.5rem)',
+            fontWeight: 400,
+            lineHeight: 1,
             letterSpacing: '-0.03em',
-            animationDelay: '0.1s',
+            color: 'var(--accent-ink)',
+            maxWidth: '900px'
           }}>
-            <span style={{ color: '#fff' }}>समाधान</span>
-            <span className="text-gradient">-सेतु</span>
+            समाधान-सेतु
           </h1>
-
-          {/* English subtitle */}
-          <div className="animate-fade-up" style={{
-            fontSize: 'clamp(1rem, 2.5vw, 1.4rem)',
-            fontWeight: 300,
-            color: '#B0BEC5',
-            marginBottom: '1.5rem',
-            letterSpacing: '0.02em',
-            animationDelay: '0.2s',
-          }}>
-            SamadhanSetu
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', alignItems: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '2rem' }}>
+            <p style={{
+              fontSize: 'clamp(1rem, 2vw, 1.25rem)',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.6,
+              maxWidth: '500px',
+              fontFamily: 'var(--font-serif)',
+              fontStyle: 'italic'
+            }}>
+              नागरिकों की समस्याओं को विश्वविद्यालयों और उद्योगों से जोड़ने का AI-संचालित डिजिटल मंच।
+            </p>
+            
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <Link href="/register" className="btn btn-primary btn-lg">
+                शुरू करें
+              </Link>
+              <Link href="/hub" className="btn btn-outline btn-lg">
+                समस्या हब
+              </Link>
+            </div>
           </div>
 
-          {/* Tagline */}
-          <p className="animate-fade-up" style={{
-            fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-            color: '#B0BEC5',
-            maxWidth: '680px',
-            margin: '0 auto 2.5rem',
-            lineHeight: 1.7,
-            animationDelay: '0.25s',
-          }}>
-            नागरिकों की समस्याओं को विश्वविद्यालयों और उद्योगों से जोड़ने का{' '}
-            <span style={{ color: '#F5A623', fontWeight: 600 }}>AI-संचालित</span> डिजिटल मंच
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="animate-fade-up" style={{
-            display: 'flex', flexWrap: 'wrap', gap: '0.875rem',
-            justifyContent: 'center',
-            animationDelay: '0.35s',
-          }}>
-            <Link href="/register" className="btn btn-primary btn-lg">
-              🚀 शुरू करें
-            </Link>
-            <Link href="/hub" className="btn btn-outline btn-lg">
-              🌐 समस्या हब देखें
-            </Link>
-            <Link href="/login" className="btn btn-ghost btn-lg">
-              लॉग इन करें
-            </Link>
-          </div>
-
-          {/* Bhashini badge */}
-          <div className="animate-fade-up" style={{
-            marginTop: '2.5rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.5rem 1rem',
-            background: 'rgba(245,166,35,0.08)',
-            border: '1px solid rgba(245,166,35,0.2)',
-            borderRadius: '999px',
-            fontSize: '0.75rem',
-            color: '#F5A623',
-            fontWeight: 500,
-            animationDelay: '0.45s',
-          }}>
-            🎤 भाषिणी AI · बहुभाषी समर्थन · Hindi · Santali · Odia · English
-          </div>
         </div>
       </section>
 
       {/* ─── STATS STRIP ─── */}
-      <section style={{
-        background: 'rgba(26,43,60,0.5)',
-        borderTop: '1px solid rgba(30,144,255,0.1)',
-        borderBottom: '1px solid rgba(30,144,255,0.1)',
-        padding: '2rem 1.5rem',
-      }}>
+      <section style={{ borderBottom: '1px solid var(--border)' }}>
         <div style={{
-          maxWidth: '1000px', margin: '0 auto',
+          maxWidth: '1100px', margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-          gap: '1.5rem',
-          textAlign: 'center',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
         }}>
-          {STATS.map(s => (
-            <div key={s.label}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>{s.icon}</div>
-              <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#1E90FF', lineHeight: 1 }}>
+          {STATS.map((s, i) => (
+            <div key={s.label} style={{
+              padding: '3rem 2rem',
+              borderRight: i !== STATS.length - 1 ? '1px solid var(--border)' : 'none',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '3.5rem', fontFamily: 'var(--font-serif)', color: 'var(--accent-ink)', lineHeight: 1, marginBottom: '0.5rem' }}>
                 <AnimatedCounter end={s.numericValue} />
                 {s.numericValue >= 100 && '+'}
               </div>
-              <div style={{ fontSize: '0.85rem', color: '#B0BEC5', marginTop: '0.25rem' }}>{s.label}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-sans)' }}>
+                {s.label}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section className="section container">
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <div className="badge badge-verified" style={{ marginBottom: '1rem' }}>हमारा तरीका</div>
-          <h2>यह कैसे काम करता है?</h2>
-          <p style={{ color: '#B0BEC5', marginTop: '0.75rem', maxWidth: '540px', margin: '0.75rem auto 0' }}>
-            6 सरल चरणों में — समस्या दर्ज करने से लेकर समाधान लागू करने तक
-          </p>
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '1.25rem',
-        }} className="stagger-children">
-          {FEATURES.map((f, i) => (
-            <div key={f.titleEn} className="card animate-fade-up" style={{ borderColor: `${f.color}22` }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                <div style={{
-                  width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
-                  background: `${f.color}18`,
-                  border: `1px solid ${f.color}33`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '24px',
-                  boxShadow: `0 0 16px ${f.color}22`,
-                }}>
-                  {f.icon}
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                    <span style={{
-                      fontSize: '0.65rem', fontWeight: 700,
-                      color: f.color,
-                      background: `${f.color}18`,
-                      padding: '0.15rem 0.5rem',
-                      borderRadius: '999px',
-                      border: `1px solid ${f.color}33`,
-                      letterSpacing: '0.06em',
-                      textTransform: 'uppercase',
-                    }}>
-                      {String(i + 1).padStart(2, '0')} · {f.titleEn}
-                    </span>
-                  </div>
-                  <h4 style={{ marginBottom: '0.4rem', fontSize: '1rem' }}>{f.title}</h4>
-                  <p style={{ fontSize: '0.85rem', color: '#B0BEC5', lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
-                </div>
-              </div>
+      <section style={{ padding: '6rem 2rem', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '2rem' }}>
+            <div>
+              <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--accent-sage)', marginBottom: '1rem' }}>प्रक्रिया</div>
+              <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)' }}>यह कैसे काम करता है</h2>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── STAKEHOLDERS ─── */}
-      <section style={{
-        background: 'rgba(26,43,60,0.3)',
-        borderTop: '1px solid rgba(30,144,255,0.08)',
-        padding: '4rem 1.5rem',
-      }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <div className="badge badge-public" style={{ marginBottom: '1rem' }}>भागीदार</div>
-            <h2>इस मंच पर कौन है?</h2>
-            <p style={{ color: '#B0BEC5', marginTop: '0.75rem' }}>
-              हर भागीदार की एक स्पष्ट भूमिका है — और हर भागीदार को एक मजबूत कारण मिलता है
+            <p style={{ maxWidth: '400px', color: 'var(--text-secondary)' }}>
+              6 सरल चरणों में — समस्या दर्ज करने से लेकर समाधान लागू करने तक का सफर।
             </p>
           </div>
 
           <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            justifyContent: 'center',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '0',
+            borderTop: '1px solid var(--border)',
+            borderLeft: '1px solid var(--border)'
           }}>
-            {STAKEHOLDERS.map(s => (
-              <div key={s.role} style={{
-                background: 'rgba(26,43,60,0.7)',
-                border: `1px solid ${s.color}25`,
-                borderRadius: '16px',
-                padding: '1.5rem 1.75rem',
-                textAlign: 'center',
-                minWidth: '160px',
-                flex: '1 1 160px',
-                maxWidth: '200px',
-                transition: 'all 0.2s',
-                cursor: 'default',
+            {FEATURES.map((f, i) => (
+              <div key={f.titleEn} style={{
+                padding: '3rem 2rem',
+                borderRight: '1px solid var(--border)',
+                borderBottom: '1px solid var(--border)',
+                background: 'var(--bg-secondary)',
+                transition: 'background 0.3s',
               }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = `${s.color}55`
-                ;(e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'
-                ;(e.currentTarget as HTMLElement).style.boxShadow = `0 8px 24px ${s.color}20`
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = `${s.color}25`
-                ;(e.currentTarget as HTMLElement).style.transform = 'translateY(0)'
-                ;(e.currentTarget as HTMLElement).style.boxShadow = 'none'
-              }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.625rem' }}>{s.icon}</div>
-                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: s.color, marginBottom: '0.3rem' }}>{s.role}</div>
-                <div style={{ fontSize: '0.78rem', color: '#607080' }}>{s.desc}</div>
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-primary)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-secondary)')}
+              >
+                <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-sans)', color: 'var(--accent-terra)', letterSpacing: '0.05em', marginBottom: '1rem', textTransform: 'uppercase' }}>
+                  {String(i + 1).padStart(2, '0')} — {f.titleEn}
+                </div>
+                <h4 style={{ marginBottom: '1rem', fontSize: '1.25rem', color: 'var(--accent-ink)' }}>{f.title}</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ─── STAKEHOLDERS ─── */}
+      <section style={{ padding: '6rem 2rem', borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4rem' }}>
+          
+          <div>
+            <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '1rem' }}>पारिस्थितिकी तंत्र</div>
+            <h2 style={{ marginBottom: '2rem' }}>इस मंच पर कौन है?</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+              हर भागीदार की एक स्पष्ट भूमिका है — और हर भागीदार को एक मजबूत कारण मिलता है।
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem' }}>
+            {STAKEHOLDERS.map(s => (
+              <div key={s.role} style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>{s.category}</div>
+                <div style={{ fontWeight: 600, fontSize: '1.1rem', color: 'var(--accent-ink)', marginBottom: '0.5rem', fontFamily: 'var(--font-sans)' }}>{s.role}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{s.desc}</div>
+              </div>
+            ))}
+          </div>
+
         </div>
       </section>
 
       {/* ─── AI SECTION ─── */}
-      <section className="section container">
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(30,144,255,0.08) 0%, rgba(124,58,237,0.08) 100%)',
-          border: '1px solid rgba(30,144,255,0.2)',
-          borderRadius: '24px',
-          padding: '3rem 2.5rem',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '2.5rem',
-          alignItems: 'center',
-        }}>
-          <div>
-            <div className="badge badge-assigned" style={{ marginBottom: '1rem' }}>AI संचालित</div>
-            <h2 style={{ marginBottom: '1rem' }}>
-              भाषिणी AI —<br />
-              <span className="text-gradient">हर कदम पर</span>
-            </h2>
-            <p style={{ color: '#B0BEC5', lineHeight: 1.7, marginBottom: '1.5rem' }}>
-              भाषिणी के बिना, एक अनपढ़ नागरिक इस मंच का उपयोग नहीं कर सकता। AI हर चरण को
-              कुशल और वास्तव में समावेशी बनाता है।
-            </p>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.5rem 1rem',
-              background: 'rgba(245,166,35,0.1)',
-              border: '1px solid rgba(245,166,35,0.25)',
-              borderRadius: '999px',
-              fontSize: '0.8rem',
-              color: '#F5A623',
-              fontWeight: 600,
-            }}>
-              ⏳ Bhashini API integration in progress
+      <section style={{ padding: '6rem 2rem', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '4rem' }}>
+            <div style={{ flex: '1 1 400px' }}>
+              <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--accent-sage)', marginBottom: '1rem' }}>प्रौद्योगिकी</div>
+              <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: '1.5rem', lineHeight: 1.1 }}>
+                भाषिणी AI<br/>
+                <span style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>हर कदम पर</span>
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '2rem', fontSize: '1.1rem' }}>
+                भाषिणी के बिना, एक अनपढ़ नागरिक इस मंच का उपयोग नहीं कर सकता। AI हर चरण को
+                कुशल और वास्तव में समावेशी बनाता है।
+              </p>
+            </div>
+
+            <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column' }}>
+              {[
+                { title: 'बहुभाषी LLM', desc: 'हिंदी, संताली, ओडिया में वॉइस/टेक्स्ट इनपुट' },
+                { title: 'स्वत: वर्गीकरण', desc: 'शिक्षा/स्वास्थ्य/कृषि/जल में रूटिंग' },
+                { title: 'डुप्लीकेशन रोधी', desc: 'समान समस्याओं को पहचाने और मर्ज करें' },
+                { title: 'ट्रेंड विश्लेषण', desc: 'जिला और क्षेत्र के अनुसार हीटमैप' },
+              ].map((item, idx) => (
+                <div key={item.title} style={{
+                  padding: '1.5rem 0',
+                  borderTop: idx === 0 ? '1px solid var(--border)' : '1px solid var(--border)',
+                  borderBottom: idx === 3 ? '1px solid var(--border)' : 'none'
+                }}>
+                  <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--accent-ink)', marginBottom: '0.5rem', fontFamily: 'var(--font-sans)' }}>{item.title}</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{item.desc}</div>
+                </div>
+              ))}
             </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-            {[
-              { icon: '🌐', title: 'बहुभाषी LLM', desc: 'हिंदी, संताली, ओडिया में वॉइस/टेक्स्ट इनपुट' },
-              { icon: '🏷️', title: 'स्वत: वर्गीकरण', desc: 'शिक्षा/स्वास्थ्य/कृषि/जल में रूटिंग' },
-              { icon: '🔍', title: 'डुप्लीकेशन रोधी', desc: 'समान समस्याओं को पहचाने और मर्ज करें' },
-              { icon: '📊', title: 'ट्रेंड विश्लेषण', desc: 'जिला और क्षेत्र के अनुसार हीटमैप' },
-            ].map(item => (
-              <div key={item.title} style={{
-                display: 'flex', alignItems: 'center', gap: '0.875rem',
-                padding: '0.875rem 1rem',
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '10px',
-              }}>
-                <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{item.icon}</span>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.15rem' }}>{item.title}</div>
-                  <div style={{ fontSize: '0.78rem', color: '#607080' }}>{item.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+
         </div>
       </section>
 
       {/* ─── CTA FOOTER ─── */}
-      <section style={{
-        background: 'rgba(26,43,60,0.5)',
-        borderTop: '1px solid rgba(30,144,255,0.1)',
-        padding: '4rem 1.5rem',
-        textAlign: 'center',
-      }}>
-        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1.25rem', animation: 'float 3s ease-in-out infinite' }}>🌉</div>
-          <h2 style={{ marginBottom: '1rem' }}>
-            झारखंड की समस्याओं को{' '}
-            <span className="text-gradient">भारत के नवाचार</span> में बदलें
+      <section style={{ padding: '8rem 2rem', textAlign: 'center', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)', marginBottom: '1.5rem' }}>
+            झारखंड की समस्याओं को<br/>
+            <span style={{ fontStyle: 'italic' }}>भारत के नवाचार</span> में बदलें
           </h2>
-          <p style={{ color: '#B0BEC5', marginBottom: '2rem', lineHeight: 1.7 }}>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem', lineHeight: 1.7, fontSize: '1.1rem' }}>
             &ldquo;हम सिर्फ एक मंच नहीं बनाना चाहते। हम एक ऐसा आंदोलन बनाना चाहते हैं जहाँ
             हर नागरिक की आवाज़ एक हल बन जाए।&rdquo;
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/register" className="btn btn-primary btn-lg">
-              अभी जुड़ें →
+              अभी जुड़ें
             </Link>
-            <Link href="/hub" className="btn btn-ghost btn-lg">
+            <Link href="/hub" className="btn btn-outline btn-lg">
               समस्याएं देखें
             </Link>
           </div>
@@ -421,14 +278,16 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer style={{
-        borderTop: '1px solid rgba(255,255,255,0.05)',
-        padding: '1.5rem',
+        padding: '2rem',
         textAlign: 'center',
-        color: '#607080',
-        fontSize: '0.8rem',
+        color: 'var(--text-muted)',
+        fontSize: '0.75rem',
+        fontFamily: 'var(--font-sans)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em'
       }}>
-        <div>Smart India Hackathon 2026 · Problem Statement <strong style={{ color: '#B0BEC5' }}>SIH-26043</strong></div>
-        <div style={{ marginTop: '0.3rem' }}>Ministry of Education · Government of Jharkhand</div>
+        <div>Smart India Hackathon 2026 / SIH-26043</div>
+        <div style={{ marginTop: '0.5rem' }}>Ministry of Education / Government of Jharkhand</div>
       </footer>
     </div>
   )

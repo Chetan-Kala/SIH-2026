@@ -1,19 +1,26 @@
 import type { Metadata } from 'next'
-import { Noto_Sans_Devanagari, Inter } from 'next/font/google'
+import { Noto_Sans_Devanagari, Newsreader, Work_Sans } from 'next/font/google'
 import Navbar from '@/components/Navbar'
 import './globals.css'
 
 const notoSansDevanagari = Noto_Sans_Devanagari({
   subsets: ['devanagari'],
-  weight: ['300', '400', '500', '600', '700', '800'],
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-noto-devanagari',
   display: 'swap',
 })
 
-const inter = Inter({
+const newsreader = Newsreader({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-inter',
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
+  display: 'swap',
+})
+
+const workSans = Work_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-sans',
   display: 'swap',
 })
 
@@ -32,7 +39,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="hi" suppressHydrationWarning>
-      <body className={`${notoSansDevanagari.variable} ${inter.variable}`}>
+      <body className={`${notoSansDevanagari.variable} ${newsreader.variable} ${workSans.variable}`}>
         <Navbar />
         <main className="page-wrapper">
           {children}
