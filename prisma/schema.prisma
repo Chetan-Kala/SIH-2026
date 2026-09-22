@@ -42,6 +42,11 @@ enum ProblemVisibility {
   RESOLVED
 }
 
+enum RoutingPath {
+  MINISTRY
+  HUB
+}
+
 enum HackathonStatus {
   OPEN
   SHORTLISTING
@@ -49,6 +54,47 @@ enum HackathonStatus {
   SEMIFINAL
   FINALE
   COMPLETED
+}
+
+enum SolutionStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  WINNER
+  REJECTED
+}
+
+enum IndustryAppRole {
+  MENTOR
+  FUNDER
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  PROBLEM_VERIFIED
+  PROBLEM_REJECTED
+  PROBLEM_ROUTED
+  HACKATHON_CREATED
+  HACKATHON_STATUS_CHANGED
+  SOLUTION_SUBMITTED
+  SOLUTION_WON
+  INDUSTRY_APPLICATION
+  POINTS_AWARDED
+  GENERAL
+}
+
+enum PointsReason {
+  PROBLEM_SUBMITTED
+  PROBLEM_VERIFIED
+  HACKATHON_CREATED
+  SOLUTION_SUBMITTED
+  SOLUTION_WON
+  INDUSTRY_MENTORED
+  INDUSTRY_FUNDED
 }
 
 // ─────────────────────────────────────────────────────
@@ -70,9 +116,13 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  problems      Problem[]
-  solutions     Solution[]
-  hackathons    Hackathon[] @relation("UniversityHackathons")
+  problems              Problem[]
+  solutions             Solution[]
+  hackathons            Hackathon[]          @relation("UniversityHackathons")
+  industryApplications  IndustryApplication[]
+  teamRegistrations     TeamMember[]
+  notifications         Notification[]
+  pointsTransactions    PointsTransaction[]
 }
 
 model District {
@@ -84,62 +134,154 @@ model District {
 }
 
 model Problem {
-  id            String            @id @default(uuid())
-  title         String
-  description   String            @db.Text
-  titleHi       String?           // Hindi translation (Bhashini — filled when API key is set)
-  descriptionHi String?           @db.Text // Hindi translation (Bhashini)
-  aiSummary     String?           // Short AI-generated summary
-  urgencyScore  Int               @default(0) // 0-100
-  status        ProblemStatus     @default(PENDING)
-  visibility    ProblemVisibility @default(PENDING_REVIEW)
-  domain        String?
-  routedTo      String?
-  mediaUrls     String[]          // Array of uploaded image/video URLs
-  phase         Phase             @default(SUMMER)
-  sourceLang    String            @default("en") // Language the citizen submitted in
-  submitterId   String
-  submitter     User              @relation(fields: [submitterId], references: [id])
-  districtId    String
-  district      District          @relation(fields: [districtId], references: [id])
-  hackathonId   String?
-  hackathon     Hackathon?        @relation(fields: [hackathonId], references: [id])
-  solutions     Solution[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id                String            @id @default(uuid())
+  title             String
+  description       String            @db.Text
+
+  // Bhashini / AI translation fields
+  titleHi           String?           // Hindi translation (Bhashini)
+  descriptionHi     String?           @db.Text
+  sourceLang        String            @default("en")
+
+  // AI Pipeline output fields
+  aiSummary         String?           // Short AI-generated summary
+  aiClassifiedDomain String?          // Domain as detected by AI (may differ from human-confirmed `domain`)
+  urgencyScore      Int               @default(0)  // 0-100
+  dedupGroupId      String?           // UUID grouping near-duplicate submissions together
+
+  // Human-confirmed classification
+  domain            String?
+  routingPath       RoutingPath?      // MINISTRY | HUB (set by Regional Head)
+  routedTo          String?           // Ministry name or university user ID
+  rejectionReason   String?           // Filled when status = REJECTED
+
+  // Status & visibility lifecycle
+  status            ProblemStatus     @default(PENDING)
+  visibility        ProblemVisibility @default(PENDING_REVIEW)
+  phase             Phase             @default(SUMMER)
+
+  // Media
+  mediaUrls         String[]
+
+  // Relations
+  submitterId       String
+  submitter         User              @relation(fields: [submitterId], references: [id])
+  districtId        String
+  district          District          @relation(fields: [districtId], references: [id])
+  hackathonId       String?
+  hackathon         Hackathon?        @relation(fields: [hackathonId], references: [id])
+  solutions         Solution[]
+  teamRegistrations TeamRegistration[]
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 }
 
 model Hackathon {
-  id              String          @id @default(uuid())
-  title           String
-  description     String          @db.Text
-  status          HackathonStatus @default(OPEN)
-  phase           Phase           @default(SUMMER)
-  universityId    String
-  university      User            @relation("UniversityHackathons", fields: [universityId], references: [id])
-  industryOrgName String?         // Industry partner name
-  prizePool       String?
+  id                   String          @id @default(uuid())
+  title                String
+  description          String          @db.Text
+  status               HackathonStatus @default(OPEN)
+  phase                Phase           @default(SUMMER)
+
+  // University that created this hackathon
+  universityId         String
+  university           User            @relation("UniversityHackathons", fields: [universityId], references: [id])
+
+  // Industry partnership (optional until applied)
+  industryOrgName      String?
+  prizePool            String?
+
+  // Timeline
   registrationDeadline DateTime?
-  startDate       DateTime?
-  endDate         DateTime?
-  problems        Problem[]
-  solutions       Solution[]
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  startDate            DateTime?
+  endDate              DateTime?
+
+  // Relations
+  problems             Problem[]
+  solutions            Solution[]
+  teamRegistrations    TeamRegistration[]
+  industryApplications IndustryApplication[]
+
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+}
+
+/// A student team registering for a hackathon to solve a specific problem.
+model TeamRegistration {
+  id              String    @id @default(uuid())
+  teamName        String
+  hackathonId     String
+  hackathon       Hackathon @relation(fields: [hackathonId], references: [id])
+  problemId       String?
+  problem         Problem?  @relation(fields: [problemId], references: [id])
+  submissionUrl   String?   // Link to prototype / report
+  status          ApplicationStatus @default(PENDING)
+  members         TeamMember[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+/// Individual members inside a team registration.
+model TeamMember {
+  id                 String           @id @default(uuid())
+  userId             String
+  user               User             @relation(fields: [userId], references: [id])
+  teamRegistrationId String
+  teamRegistration   TeamRegistration @relation(fields: [teamRegistrationId], references: [id])
+  isLeader           Boolean          @default(false)
+}
+
+/// Industry application to mentor or co-fund a hackathon.
+model IndustryApplication {
+  id          String            @id @default(uuid())
+  hackathonId String
+  hackathon   Hackathon         @relation(fields: [hackathonId], references: [id])
+  industryId  String
+  industry    User              @relation(fields: [industryId], references: [id])
+  role        IndustryAppRole   // MENTOR | FUNDER
+  status      ApplicationStatus @default(PENDING)
+  message     String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model Solution {
-  id           String     @id @default(uuid())
+  id           String         @id @default(uuid())
   title        String
-  description  String     @db.Text
+  description  String         @db.Text
+  status       SolutionStatus @default(SUBMITTED)
   submitterId  String
-  submitter    User       @relation(fields: [submitterId], references: [id])
+  submitter    User           @relation(fields: [submitterId], references: [id])
   problemId    String?
-  problem      Problem?   @relation(fields: [problemId], references: [id])
+  problem      Problem?       @relation(fields: [problemId], references: [id])
   hackathonId  String?
-  hackathon    Hackathon? @relation(fields: [hackathonId], references: [id])
-  isWinner     Boolean    @default(false)
+  hackathon    Hackathon?     @relation(fields: [hackathonId], references: [id])
   mediaUrls    String[]
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+/// In-app notification for any user.
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  type      NotificationType
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  link      String?          // Optional deep-link URL
+  createdAt DateTime         @default(now())
+}
+
+/// Audit log of every points transaction for a user.
+model PointsTransaction {
+  id        String       @id @default(uuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  delta     Int          // Positive = earned, Negative = deducted
+  reason    PointsReason
+  refId     String?      // Optional reference (problemId, hackathonId, solutionId)
+  createdAt DateTime     @default(now())
 }

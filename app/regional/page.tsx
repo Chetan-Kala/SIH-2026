@@ -1,268 +1,446 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import Navbar from '@/components/Navbar'
 
 interface Problem {
   id: string
   title: string
   description: string
+  aiSummary?: string
+  domain?: string
+  aiClassifiedDomain?: string
+  urgencyScore: number
+  sourceLang: string
+  titleHi?: string
   status: string
   createdAt: string
-  submitter: {
-    name: string
-    phone: string
-  }
-  district: {
-    nameHi: string
-    name: string
-  }
+  submitter: { name: string; phone: string }
+  district: { name: string; nameHi: string }
 }
 
-type Lang = 'hi' | 'en'
-
-const t = {
-  hi: {
-    title: 'क्षेत्रीय अधिकारी पोर्टल',
-    subtitle: 'लंबित समस्याएँ — सत्यापन / अस्वीकृति',
-    loading: 'लोड हो रहा है...',
-    empty: 'कोई लंबित समस्या नहीं है।',
-    toastVerified: 'समस्या सत्यापित कर दी गई।',
-    toastRejected: 'समस्या अस्वीकृत कर दी गई।',
-    verify: '✓ सत्यापित करें',
-    reject: '✗ अस्वीकार करें',
-    badge: 'लंबित',
-    toggleLabel: 'English',
-    dateLocale: 'hi-IN',
-    dateOptions: { day: '2-digit' as const, month: 'long' as const, year: 'numeric' as const },
-  },
-  en: {
-    title: 'Regional Officer Portal',
-    subtitle: 'Pending Problems — Verify / Reject',
-    loading: 'Loading...',
-    empty: 'No pending problems.',
-    toastVerified: 'Problem verified successfully.',
-    toastRejected: 'Problem rejected successfully.',
-    verify: '✓ Verify',
-    reject: '✗ Reject',
-    badge: 'Pending',
-    toggleLabel: 'हिन्दी',
-    dateLocale: 'en-IN',
-    dateOptions: { day: '2-digit' as const, month: 'short' as const, year: 'numeric' as const },
-  },
+interface Stats {
+  pending: number
+  verifiedToday: number
+  rejectedToday: number
+  totalToday: number
 }
 
-export default function RegionalPage() {
-  const [lang, setLang] = useState<Lang>('hi')
-  const [problems, setProblems] = useState<Problem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [actionMsg, setActionMsg] = useState<string | null>(null)
-  const [actionId, setActionId] = useState<string | null>(null)
+const DOMAIN_EMOJI: Record<string, string> = {
+  'Roads & Infrastructure': '🛣️',
+  'Water Supply & Sanitation': '💧',
+  'Electricity': '⚡',
+  'Waste Management': '🗑️',
+  'Public Health': '🏥',
+  'Law & Order': '🚔',
+  'Education': '📚',
+  'Transport': '🚌',
+  'General': '📋',
+}
 
-  // Load persisted language preference
-  useEffect(() => {
-    const saved = localStorage.getItem('regional-lang')
-    if (saved === 'en' || saved === 'hi') setLang(saved)
-  }, [])
+function urgencyLevel(score: number) {
+  if (score >= 80) return { label: 'CRITICAL', cls: 'urgency-critical' }
+  if (score >= 50) return { label: 'HIGH',     cls: 'urgency-high' }
+  if (score >= 20) return { label: 'MEDIUM',   cls: 'urgency-medium' }
+  return              { label: 'LOW',      cls: 'urgency-low' }
+}
 
-  const toggleLang = () => {
-    const next: Lang = lang === 'hi' ? 'en' : 'hi'
-    setLang(next)
-    localStorage.setItem('regional-lang', next)
+export default function RegionalDashboard() {
+  const [problems, setProblems]           = useState<Problem[]>([])
+  const [stats, setStats]                 = useState<Stats>({ pending: 0, verifiedToday: 0, rejectedToday: 0, totalToday: 0 })
+  const [loading, setLoading]             = useState(true)
+  const [actionId, setActionId]           = useState<string | null>(null)
+  const [rejectModal, setRejectModal]     = useState<{ id: string; title: string } | null>(null)
+  const [rejectReason, setRejectReason]   = useState('')
+  const [routeModal, setRouteModal]       = useState<{ id: string; title: string } | null>(null)
+  const [routingPath, setRoutingPath]     = useState<'HUB' | 'MINISTRY'>('HUB')
+  const [routedTo, setRoutedTo]           = useState('')
+  const [toast, setToast]                 = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [domainFilter, setDomainFilter]   = useState('')
+  const [urgencyFilter, setUrgencyFilter] = useState('')
+
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3500)
   }
 
-  const fetchProblems = () => {
+  const fetchProblems = useCallback(async () => {
     setLoading(true)
-    fetch('/api/problems')
-      .then(r => r.json())
-      .then(data => {
-        const pending = (data.problems as Problem[]).filter(p => p.status === 'PENDING')
-        setProblems(pending)
-        setLoading(false)
-      })
-  }
+    const params = new URLSearchParams({ status: 'PENDING', limit: '50' })
+    if (domainFilter) params.set('domain', domainFilter)
+    const res = await fetch(`/api/problems?${params}`)
+    const data = await res.json()
+    let list: Problem[] = data.problems ?? []
 
-  useEffect(() => { fetchProblems() }, [])
+    if (urgencyFilter === 'critical') list = list.filter(p => p.urgencyScore >= 80)
+    else if (urgencyFilter === 'high') list = list.filter(p => p.urgencyScore >= 50 && p.urgencyScore < 80)
+    else if (urgencyFilter === 'medium') list = list.filter(p => p.urgencyScore >= 20 && p.urgencyScore < 50)
+    else if (urgencyFilter === 'low') list = list.filter(p => p.urgencyScore < 20)
 
-  const handleAction = async (id: string, status: 'VERIFIED' | 'REJECTED') => {
+    setProblems(list)
+    setStats(s => ({ ...s, pending: data.total ?? list.length }))
+    setLoading(false)
+  }, [domainFilter, urgencyFilter])
+
+  useEffect(() => { fetchProblems() }, [fetchProblems])
+
+  const handleVerify = async (id: string) => {
     setActionId(id)
     const res = await fetch(`/api/problems/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status: 'VERIFIED', visibility: 'VERIFIED' }),
     })
     if (res.ok) {
-      const msg = status === 'VERIFIED' ? t[lang].toastVerified : t[lang].toastRejected
-      setActionMsg(msg)
+      showToast('✅ Problem verified!')
+      setStats(s => ({ ...s, verifiedToday: s.verifiedToday + 1 }))
       setProblems(prev => prev.filter(p => p.id !== id))
-      setTimeout(() => setActionMsg(null), 3000)
+    } else {
+      showToast('Failed to verify', 'error')
     }
     setActionId(null)
   }
 
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString(t[lang].dateLocale, t[lang].dateOptions)
+  const handleReject = async () => {
+    if (!rejectModal) return
+    setActionId(rejectModal.id)
+    const res = await fetch(`/api/problems/${rejectModal.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'REJECTED', rejectionReason: rejectReason }),
+    })
+    if (res.ok) {
+      showToast('Problem rejected')
+      setStats(s => ({ ...s, rejectedToday: s.rejectedToday + 1 }))
+      setProblems(prev => prev.filter(p => p.id !== rejectModal.id))
+    } else {
+      showToast('Failed to reject', 'error')
+    }
+    setRejectModal(null)
+    setRejectReason('')
+    setActionId(null)
+  }
 
-  const tx = t[lang]
+  const handleRoute = async () => {
+    if (!routeModal) return
+    setActionId(routeModal.id)
+    const res = await fetch(`/api/problems/${routeModal.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: 'ROUTED',
+        visibility: routingPath === 'HUB' ? 'PUBLIC' : 'VERIFIED',
+        routingPath,
+        routedTo: routedTo || (routingPath === 'HUB' ? 'Public Hub' : 'Ministry'),
+      }),
+    })
+    if (res.ok) {
+      showToast(`✅ Routed to ${routingPath === 'HUB' ? 'Public Hub' : 'Ministry'}`)
+      setProblems(prev => prev.filter(p => p.id !== routeModal.id))
+    } else {
+      showToast('Routing failed', 'error')
+    }
+    setRouteModal(null)
+    setRoutedTo('')
+    setActionId(null)
+  }
+
+  const domains = Array.from(new Set(problems.map(p => p.domain || p.aiClassifiedDomain).filter(Boolean)))
 
   return (
-    <main style={{ fontFamily: 'var(--font-noto-devanagari), sans-serif', backgroundColor: '#f9fafb', minHeight: '100vh' }}>
-      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '24px 16px' }}>
+    <>
+      <Navbar />
 
+      <main style={{ minHeight: '100vh', paddingBottom: 60 }}>
         {/* Header */}
         <div style={{
-          borderBottom: '2px solid #1a56db',
-          paddingBottom: '12px',
-          marginBottom: '24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
+          background: 'linear-gradient(135deg, #0D1B2A 0%, #162233 100%)',
+          borderBottom: '1px solid var(--border-subtle)',
+          padding: '32px 0',
         }}>
-          <div>
-            <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#1a56db', margin: 0 }}>
-              {tx.title}
-            </h1>
-            <p style={{ fontSize: '14px', color: '#555', margin: '4px 0 0' }}>
-              {tx.subtitle}
-            </p>
-          </div>
-
-          {/* Language toggle */}
-          <button
-            onClick={toggleLang}
-            style={{
-              padding: '6px 14px',
-              border: '1px solid #1a56db',
-              borderRadius: '4px',
-              backgroundColor: '#fff',
-              color: '#1a56db',
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-noto-devanagari), sans-serif',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {tx.toggleLabel}
-          </button>
-        </div>
-
-        {/* Toast */}
-        {actionMsg && (
-          <div style={{
-            backgroundColor: '#f0fdf4',
-            border: '1px solid #16a34a',
-            borderRadius: '4px',
-            padding: '10px 16px',
-            marginBottom: '20px',
-            color: '#15803d',
-            fontWeight: '600',
-            fontSize: '14px',
-          }}>
-            ✓ {actionMsg}
-          </div>
-        )}
-
-        {/* Loading */}
-        {loading && (
-          <p style={{ color: '#666', fontSize: '15px' }}>{tx.loading}</p>
-        )}
-
-        {/* Empty state */}
-        {!loading && problems.length === 0 && (
-          <div style={{
-            border: '1px solid #e5e7eb',
-            borderRadius: '4px',
-            padding: '32px',
-            textAlign: 'center',
-            backgroundColor: '#fff',
-          }}>
-            <p style={{ color: '#555', margin: 0 }}>{tx.empty}</p>
-          </div>
-        )}
-
-        {/* Problem list */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {problems.map(p => (
-            <div key={p.id} style={{
-              backgroundColor: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '4px',
-              padding: '16px',
-            }}>
-              {/* Title row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#111', margin: 0 }}>
-                  {p.title}
-                </h2>
-                <span style={{
-                  fontSize: '12px',
-                  backgroundColor: '#fef9c3',
-                  color: '#854d0e',
-                  border: '1px solid #fde68a',
-                  borderRadius: '4px',
-                  padding: '2px 8px',
-                  whiteSpace: 'nowrap',
-                  marginLeft: '8px',
-                }}>
-                  {tx.badge}
-                </span>
+          <div className="container">
+            <div className="flex-between" style={{ flexWrap: 'wrap', gap: 16 }}>
+              <div>
+                <div className="section-label">Regional Head Portal</div>
+                <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', marginBottom: 4 }}>
+                  क्षेत्रीय अधिकारी पोर्टल
+                </h1>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                  Review, verify, and route citizen-submitted problems
+                </p>
               </div>
 
-              {/* Description */}
-              <p style={{ fontSize: '14px', color: '#444', margin: '0 0 12px', lineHeight: '1.6' }}>
-                {p.description}
-              </p>
-
-              {/* Meta — district always shows both scripts */}
-              <div style={{ fontSize: '13px', color: '#666', marginBottom: '14px', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                <span>📍 <strong>{p.district.nameHi}</strong> ({p.district.name})</span>
-                <span>👤 {p.submitter.name}</span>
-                <span>📞 {p.submitter.phone}</span>
-                <span>📅 {formatDate(p.createdAt)}</span>
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  onClick={() => handleAction(p.id, 'VERIFIED')}
-                  disabled={actionId === p.id}
-                  style={{
-                    padding: '8px 18px',
-                    backgroundColor: actionId === p.id ? '#86efac' : '#16a34a',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: actionId === p.id ? 'not-allowed' : 'pointer',
-                    fontFamily: 'var(--font-noto-devanagari), sans-serif',
-                  }}
-                >
-                  {tx.verify}
-                </button>
-                <button
-                  onClick={() => handleAction(p.id, 'REJECTED')}
-                  disabled={actionId === p.id}
-                  style={{
-                    padding: '8px 18px',
-                    backgroundColor: actionId === p.id ? '#fca5a5' : '#dc2626',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: actionId === p.id ? 'not-allowed' : 'pointer',
-                    fontFamily: 'var(--font-noto-devanagari), sans-serif',
-                  }}
-                >
-                  {tx.reject}
-                </button>
+              {/* Stats row */}
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                {[
+                  { label: 'Pending', value: stats.pending,       color: '#F5A623' },
+                  { label: 'Verified Today', value: stats.verifiedToday, color: '#00C48C' },
+                  { label: 'Rejected Today', value: stats.rejectedToday, color: '#FF4757' },
+                ].map(s => (
+                  <div key={s.label} style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '10px 20px',
+                    textAlign: 'center',
+                    minWidth: 90,
+                  }}>
+                    <div style={{ fontSize: '1.6rem', fontWeight: 800, color: s.color, fontFamily: 'var(--font-heading)' }}>
+                      {s.value}
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {s.label}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          </div>
         </div>
 
+        <div className="container" style={{ paddingTop: 32 }}>
+          {/* Filters */}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+            <select
+              value={domainFilter}
+              onChange={e => setDomainFilter(e.target.value)}
+              className="form-select"
+              style={{ maxWidth: 220 }}
+            >
+              <option value="">All Domains</option>
+              {domains.map(d => <option key={d} value={d!}>{DOMAIN_EMOJI[d!] || '📋'} {d}</option>)}
+            </select>
+            <select
+              value={urgencyFilter}
+              onChange={e => setUrgencyFilter(e.target.value)}
+              className="form-select"
+              style={{ maxWidth: 180 }}
+            >
+              <option value="">All Urgency</option>
+              <option value="critical">🔴 Critical (80-100)</option>
+              <option value="high">🟡 High (50-79)</option>
+              <option value="medium">🔵 Medium (20-49)</option>
+              <option value="low">⚪ Low (0-19)</option>
+            </select>
+            <button onClick={fetchProblems} className="btn btn-outline btn-sm">↻ Refresh</button>
+          </div>
+
+          {/* Loading */}
+          {loading && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 180, borderRadius: 'var(--radius-md)' }} />)}
+            </div>
+          )}
+
+          {/* Empty */}
+          {!loading && problems.length === 0 && (
+            <div className="card" style={{ textAlign: 'center', padding: '60px 24px' }}>
+              <div style={{ fontSize: '3rem', marginBottom: 16 }}>🎉</div>
+              <h3>No pending problems!</h3>
+              <p style={{ marginTop: 8 }}>All problems have been reviewed. Check back later.</p>
+            </div>
+          )}
+
+          {/* Problem Cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {problems.map(p => {
+              const domain = p.domain || p.aiClassifiedDomain || 'General'
+              const urg    = urgencyLevel(p.urgencyScore)
+              const isActing = actionId === p.id
+
+              return (
+                <div key={p.id} className="card slide-up" style={{ padding: 0, overflow: 'hidden' }}>
+                  {/* Urgency stripe */}
+                  <div style={{
+                    height: 4,
+                    background: p.urgencyScore >= 80 ? '#FF4757' : p.urgencyScore >= 50 ? '#F5A623' : p.urgencyScore >= 20 ? '#1E90FF' : '#607080',
+                  }} />
+
+                  <div style={{ padding: 20 }}>
+                    {/* Top row */}
+                    <div className="flex-between" style={{ marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <span className={`badge ${urg.cls}`}>{urg.label}</span>
+                        <span className="badge badge-blue">{DOMAIN_EMOJI[domain] || '📋'} {domain}</span>
+                        {p.sourceLang !== 'en' && (
+                          <span className="badge badge-purple">🌐 {p.sourceLang.toUpperCase()}</span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Urgency Score:</span>
+                        <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+                          {p.urgencyScore}
+                        </span>
+                        <div className="progress-bar" style={{ width: 80 }}>
+                          <div className="progress-fill" style={{ width: `${p.urgencyScore}%` }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3 style={{ marginBottom: 6, fontSize: '1rem', fontWeight: 700 }}>{p.title}</h3>
+                    {p.titleHi && (
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: 8 }}>{p.titleHi}</p>
+                    )}
+
+                    {/* AI Summary */}
+                    {p.aiSummary && (
+                      <div style={{
+                        background: 'rgba(155,89,182,0.08)',
+                        border: '1px solid rgba(155,89,182,0.2)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '8px 12px',
+                        marginBottom: 10,
+                        fontSize: '0.85rem',
+                        color: 'var(--text-secondary)',
+                      }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#9B59B6', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          AI Summary •
+                        </span>{' '}
+                        {p.aiSummary}
+                      </div>
+                    )}
+
+                    {/* Full description */}
+                    <p style={{ fontSize: '0.9rem', lineHeight: 1.7, marginBottom: 12, color: 'var(--text-secondary)' }}>
+                      {p.description.length > 250 ? p.description.slice(0, 247) + '...' : p.description}
+                    </p>
+
+                    {/* Meta */}
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 16 }}>
+                      <span>📍 {p.district.nameHi} ({p.district.name})</span>
+                      <span>👤 {p.submitter.name}</span>
+                      <span>📞 {p.submitter.phone}</span>
+                      <span>📅 {new Date(p.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <button
+                        id={`verify-${p.id}`}
+                        onClick={() => handleVerify(p.id)}
+                        disabled={isActing}
+                        className="btn btn-success btn-sm"
+                      >
+                        ✓ Verify
+                      </button>
+                      <button
+                        id={`route-${p.id}`}
+                        onClick={() => setRouteModal({ id: p.id, title: p.title })}
+                        disabled={isActing}
+                        className="btn btn-primary btn-sm"
+                      >
+                        → Route
+                      </button>
+                      <button
+                        id={`reject-${p.id}`}
+                        onClick={() => setRejectModal({ id: p.id, title: p.title })}
+                        disabled={isActing}
+                        className="btn btn-danger btn-sm"
+                      >
+                        ✕ Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </main>
+
+      {/* Reject Modal */}
+      {rejectModal && (
+        <Modal title="Reject Problem" onClose={() => setRejectModal(null)}>
+          <p style={{ marginBottom: 16, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            Rejecting: <strong style={{ color: 'var(--text-primary)' }}>{rejectModal.title}</strong>
+          </p>
+          <div className="form-group" style={{ marginBottom: 20 }}>
+            <label className="form-label">Rejection Reason <span style={{ color: 'var(--color-red)' }}>*</span></label>
+            <textarea
+              className="form-textarea"
+              placeholder="Explain why this problem is being rejected..."
+              value={rejectReason}
+              onChange={e => setRejectReason(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button onClick={() => setRejectModal(null)} className="btn btn-ghost btn-sm">Cancel</button>
+            <button
+              onClick={handleReject}
+              disabled={!rejectReason.trim() || actionId !== null}
+              className="btn btn-danger btn-sm"
+            >
+              Confirm Reject
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Route Modal */}
+      {routeModal && (
+        <Modal title="Route Problem" onClose={() => setRouteModal(null)}>
+          <p style={{ marginBottom: 16, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            Routing: <strong style={{ color: 'var(--text-primary)' }}>{routeModal.title}</strong>
+          </p>
+          <div className="form-group" style={{ marginBottom: 16 }}>
+            <label className="form-label">Routing Path</label>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {(['HUB', 'MINISTRY'] as const).map(path => (
+                <button
+                  key={path}
+                  onClick={() => setRoutingPath(path)}
+                  className={`btn btn-sm ${routingPath === path ? 'btn-primary' : 'btn-outline'}`}
+                >
+                  {path === 'HUB' ? '🌐 Public Hub' : '🏛️ Ministry'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="form-group" style={{ marginBottom: 20 }}>
+            <label className="form-label">Route To (optional)</label>
+            <input
+              className="form-input"
+              placeholder={routingPath === 'HUB' ? 'e.g., IIT Dhanbad' : 'e.g., Education Ministry'}
+              value={routedTo}
+              onChange={e => setRoutedTo(e.target.value)}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button onClick={() => setRouteModal(null)} className="btn btn-ghost btn-sm">Cancel</button>
+            <button onClick={handleRoute} disabled={actionId !== null} className="btn btn-primary btn-sm">
+              Confirm Route
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>{toast.msg}</div>
+      )}
+    </>
+  )
+}
+
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 999,
+      background: 'rgba(0,0,0,0.7)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 16,
+      backdropFilter: 'blur(4px)',
+      animation: 'fadeIn 0.2s ease',
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: 480, animation: 'slideUp 0.25s ease' }}>
+        <div className="flex-between" style={{ marginBottom: 20 }}>
+          <h3 style={{ fontSize: '1rem' }}>{title}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
+        </div>
+        {children}
       </div>
-    </main>
+    </div>
   )
 }
