@@ -31,46 +31,54 @@ function AnimatedCounter({ end, suffix = '' }: { end: number; suffix?: string })
   return <span ref={ref}>{count.toLocaleString('en-IN')}{suffix}</span>
 }
 
-/* ── Data ─────────────────────────────────────────────────── */
-
-const STATS = [
+/* ── Stats metadata (icons/labels only — values come from API) ─── */
+const STATS_META = [
   {
+    key: 'totalProblems' as const,
     icon: '📋', color: 'blue',
-    value: 4286, suffix: '',
     labelHi: 'कुल समस्याएं दर्ज', labelEn: 'Total Problems Received',
     href: '/hub',
   },
   {
+    key: 'verifiedProblems' as const,
     icon: '✅', color: 'green',
-    value: 3142, suffix: '',
     labelHi: 'समस्याएं सत्यापित', labelEn: 'Problems Verified',
     href: '/hub',
   },
   {
+    key: 'hackathonSolutions' as const,
     icon: '🏆', color: 'amber',
-    value: 156, suffix: '',
     labelHi: 'हैकाथॉन समाधान', labelEn: 'Hackathon Solutions',
     href: '/leaderboard',
   },
   {
+    key: 'partnerUniversities' as const,
     icon: '🎓', color: 'teal',
-    value: 48, suffix: '',
     labelHi: 'भागीदार विश्वविद्यालय', labelEn: 'Partner Universities',
     href: '/leaderboard',
   },
   {
+    key: 'industryPartners' as const,
     icon: '🏭', color: 'orange',
-    value: 32, suffix: '',
     labelHi: 'उद्योग भागीदार', labelEn: 'Industry Partners',
     href: '/leaderboard',
   },
   {
+    key: 'activeDistricts' as const,
     icon: '📍', color: 'red',
-    value: 24, suffix: '',
-    labelHi: 'जिले सक्रिय', labelEn: 'Districts Active',
+    labelHi: 'सक्रिय जिले', labelEn: 'Districts Active',
     href: '/hub',
   },
 ]
+
+type LiveStats = {
+  totalProblems: number
+  verifiedProblems: number
+  hackathonSolutions: number
+  partnerUniversities: number
+  industryPartners: number
+  activeDistricts: number
+}
 
 const PORTAL_TABS = [
   {
@@ -170,6 +178,15 @@ const MARQUEE_TEXT = [
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState('citizen')
   const currentTab = PORTAL_TABS.find(t => t.id === activeTab)!
+  const [liveStats, setLiveStats] = useState<LiveStats | null>(null)
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then(r => r.json())
+      .then(data => { setLiveStats(data); setStatsLoading(false) })
+      .catch(() => setStatsLoading(false))
+  }, [])
 
   return (
     <div>
@@ -378,16 +395,26 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Live Stats Strip (like CM Window counters) ─────── */}
+      {/* ── Live Stats Strip ─────────────────────────────── */}
       <div className="stats-strip">
         <div className="container">
           <div className="grid-3" style={{ gap: 12 }}>
-            {STATS.map(s => (
+            {STATS_META.map(s => (
               <Link key={s.labelEn} href={s.href} className="stat-card" style={{ textDecoration: 'none' }}>
                 <div className={`stat-icon ${s.color}`}>{s.icon}</div>
                 <div>
                   <span className="stat-number">
-                    <AnimatedCounter end={s.value} suffix={s.suffix} />
+                    {statsLoading ? (
+                      <span style={{
+                        display: 'inline-block', width: 60, height: 28,
+                        background: 'linear-gradient(90deg,#E3EAF2 25%,#F8FAFC 50%,#E3EAF2 75%)',
+                        backgroundSize: '200% 100%',
+                        animation: 'shimmer 1.5s infinite',
+                        borderRadius: 4, verticalAlign: 'middle',
+                      }} />
+                    ) : (
+                      <AnimatedCounter end={liveStats?.[s.key] ?? 0} />
+                    )}
                   </span>
                   <span className="stat-label-hi">{s.labelHi}</span>
                   <span className="stat-label">{s.labelEn}</span>
