@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Navbar from '@/components/Navbar'
+
 
 type Segment = 'INDUSTRY' | 'UNIVERSITY' | 'STUDENT' | 'DISTRICT'
 
@@ -41,7 +41,7 @@ export default function LeaderboardPage() {
 
   return (
     <>
-      <Navbar />
+      
       <main style={{ minHeight: '100vh', paddingBottom: 80 }}>
 
         {/* Hero */}

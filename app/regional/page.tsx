@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Navbar from '@/components/Navbar'
+
 
 interface Problem {
   id: string
@@ -149,46 +149,48 @@ export default function RegionalDashboard() {
 
   return (
     <>
-      <Navbar />
+      
 
       <main style={{ minHeight: '100vh', paddingBottom: 60 }}>
         {/* Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #0D1B2A 0%, #162233 100%)',
-          borderBottom: '1px solid var(--border-subtle)',
-          padding: '32px 0',
+          background: 'var(--gradient-gov-header)',
+          padding: '20px 0',
+          borderBottom: '3px solid var(--gov-amber)',
         }}>
           <div className="container">
-            <div className="flex-between" style={{ flexWrap: 'wrap', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
               <div>
-                <div className="section-label">Regional Head Portal</div>
-                <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', marginBottom: 4 }}>
-                  क्षेत्रीय अधिकारी पोर्टल
+                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+                  क्षेत्रीय अधिकारी पोर्टल · Regional Head Portal
+                </div>
+                <h1 style={{ fontFamily: 'var(--font-devanagari)', fontSize: '1.5rem', marginBottom: 2, color: '#fff' }}>
+                  समस्या समीक्षा डैशबोर्ड
                 </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  Review, verify, and route citizen-submitted problems
+                <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem' }}>
+                  Review, verify and route citizen-submitted problems · SIH-26043
                 </p>
               </div>
 
               {/* Stats row */}
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {[
-                  { label: 'Pending', value: stats.pending,       color: '#F5A623' },
-                  { label: 'Verified Today', value: stats.verifiedToday, color: '#00C48C' },
-                  { label: 'Rejected Today', value: stats.rejectedToday, color: '#FF4757' },
+                  { label: 'लंबित / Pending', value: stats.pending, bg: 'rgba(232,130,26,0.2)', border: 'rgba(232,130,26,0.4)', color: '#FFD54F' },
+                  { label: 'आज सत्यापित', value: stats.verifiedToday, bg: 'rgba(19,136,8,0.2)', border: 'rgba(19,136,8,0.4)', color: '#69F0AE' },
+                  { label: 'आज अस्वीकृत', value: stats.rejectedToday, bg: 'rgba(198,40,40,0.2)', border: 'rgba(198,40,40,0.4)', color: '#FF8A80' },
                 ].map(s => (
                   <div key={s.label} style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '10px 20px',
+                    background: s.bg,
+                    border: `1px solid ${s.border}`,
+                    borderRadius: '6px',
+                    padding: '8px 16px',
                     textAlign: 'center',
-                    minWidth: 90,
+                    minWidth: 80,
                   }}>
-                    <div style={{ fontSize: '1.6rem', fontWeight: 800, color: s.color, fontFamily: 'var(--font-heading)' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: s.color, fontFamily: 'var(--font-heading)', lineHeight: 1 }}>
                       {s.value}
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600, marginTop: 2, fontFamily: 'var(--font-devanagari)' }}>
                       {s.label}
                     </div>
                   </div>

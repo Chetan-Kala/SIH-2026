@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Navbar from '@/components/Navbar'
+
 
 interface Problem {
   id: string
@@ -75,7 +75,7 @@ export default function PublicHub() {
 
   return (
     <>
-      <Navbar />
+      
 
       <main style={{ minHeight: '100vh', paddingBottom: 80 }}>
         {/* Hero */}
