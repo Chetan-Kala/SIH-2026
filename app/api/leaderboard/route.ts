@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSession } from '@/lib/auth'
 
 // ─────────────────────────────────────────────────────────────
 //  GET /api/leaderboard?segment=INDUSTRY|UNIVERSITY|STUDENT|DISTRICT

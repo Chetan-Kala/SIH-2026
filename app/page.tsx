@@ -612,7 +612,7 @@ export default function HomePage() {
             झारखंड की समस्याओं को नवाचार में बदलें
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 24, fontSize: '0.9rem' }}>
-            Join thousands of citizens, universities, and industries building Jharkhand's future
+            Join thousands of citizens, universities, and industries building Jharkhand&apos;s future
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/register" className="btn btn-amber btn-xl">

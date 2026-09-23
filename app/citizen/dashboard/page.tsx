@@ -40,7 +40,7 @@ export default function CitizenDashboard() {
       }
       const data = await res.json()
       setProblems(data.problems || [])
-    } catch (err) {
+    } catch (_err) {
       setError('समस्याओं को लोड करने में विफल')
     } finally {
       setLoading(false)
@@ -54,6 +54,7 @@ export default function CitizenDashboard() {
       return
     }
     fetchProblems()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
   const handleReRaise = async (id: string) => {
@@ -64,7 +65,7 @@ export default function CitizenDashboard() {
       const res = await fetch(`/api/problems/${id}/reraise`, { method: 'POST' })
       if (!res.ok) throw new Error('Failed to re-raise')
       await fetchProblems() // Refresh list
-    } catch (err) {
+    } catch (_err) {
       alert('कुछ गलत हुआ। कृपया पुनः प्रयास करें।')
     } finally {
       setReRaising(null)

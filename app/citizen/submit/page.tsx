@@ -11,12 +11,6 @@ interface District { id: string; name: string; nameHi: string }
 
 
 
-const URGENCY_OPTIONS = [
-  { value: 20, label: 'कम', emoji: '🟢', desc: 'कोई समय-सीमा नहीं' },
-  { value: 50, label: 'मध्यम', emoji: '🟡', desc: 'कुछ हफ्तों में समाधान चाहिए' },
-  { value: 80, label: 'अधिक', emoji: '🟠', desc: 'जल्द ध्यान चाहिए' },
-  { value: 100, label: 'आपातकालीन', emoji: '🔴', desc: 'तत्काल कार्रवाई आवश्यक है' },
-]
 
 const LANG_OPTIONS = [
   { code: 'hi', label: 'हिंदी', flag: '🇮🇳' },

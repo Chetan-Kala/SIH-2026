@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { runAIPipeline } from '@/lib/ai-pipeline'
-import { awardPoints, sendNotification } from '@/lib/notifications'
+import { awardPoints } from '@/lib/notifications'
 
 // ─────────────────────────────────────────────────────────────
 //  POST /api/problems  — Citizen submits a new problem

@@ -43,7 +43,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const [user, setUser]           = useState<SessionUser | null>(null)
   const [loading, setLoading]     = useState(true)
-  const [menuOpen, setMenuOpen]   = useState(false)
+
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount]     = useState(0)
